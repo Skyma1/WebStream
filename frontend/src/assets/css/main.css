@@ -1,0 +1,619 @@
+/**
+ * Основные стили для WebStream
+ */
+
+/* Сброс стилей */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Основные переменные */
+:root {
+  /* Цвета */
+  --primary-color: #3b82f6;
+  --primary-dark: #1e40af;
+  --primary-light: #60a5fa;
+  --secondary-color: #64748b;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --info-color: #06b6d4;
+  
+  /* Фоны */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-card: rgba(30, 41, 59, 0.5);
+  --bg-overlay: rgba(0, 0, 0, 0.8);
+  
+  /* Текст */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  
+  /* Границы */
+  --border-color: #334155;
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+  
+  /* Тени */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  
+  /* Размеры */
+  --header-height: 64px;
+  --sidebar-width: 280px;
+  --max-width: 1200px;
+  
+  /* Анимации */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.3s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
+}
+
+/* Основные стили */
+html {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+/* Типографика */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.5rem; }
+h5 { font-size: 1.25rem; }
+h6 { font-size: 1rem; }
+
+p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--primary-light);
+}
+
+/* Кнопки в стиле Kick.com */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Основная кнопка - темно-серая как на Kick */
+.btn-primary {
+  background: #2a2a2a;
+  color: white;
+  border: 1px solid #3a3a3a;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #3a3a3a;
+  border-color: #4a4a4a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Вторичная кнопка - более темная */
+.btn-secondary {
+  background: #1a1a1a;
+  color: white;
+  border: 1px solid #2a2a2a;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+}
+
+/* Кнопка успеха - красная */
+.btn-success {
+  background: #ff0000;
+  color: white;
+  border: 1px solid #ff0000;
+  font-weight: 600;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #e60000;
+  border-color: #e60000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 0, 0, 0.3);
+}
+
+/* Кнопка предупреждения */
+.btn-warning {
+  background: #ffa500;
+  color: #000;
+  border: 1px solid #ffa500;
+  font-weight: 600;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #ff9500;
+  border-color: #ff9500;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 165, 0, 0.3);
+}
+
+/* Кнопка ошибки - красная */
+.btn-error {
+  background: #ff0000;
+  color: white;
+  border: 1px solid #ff0000;
+  font-weight: 600;
+}
+
+.btn-error:hover:not(:disabled) {
+  background: #e60000;
+  border-color: #e60000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 0, 0, 0.3);
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+}
+
+/* Формы */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: all var(--transition-fast);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-input:invalid {
+  border-color: var(--error-color);
+}
+
+.form-error {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--error-color);
+}
+
+.form-help {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Карточки */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+}
+
+.card-header {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.card-body {
+  color: var(--text-secondary);
+}
+
+.card-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Контейнеры */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.container-fluid {
+  width: 100%;
+  padding: 0 1rem;
+}
+
+/* Сетка */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -0.5rem;
+}
+
+.col {
+  flex: 1;
+  padding: 0 0.5rem;
+}
+
+.col-1 { flex: 0 0 8.333333%; }
+.col-2 { flex: 0 0 16.666667%; }
+.col-3 { flex: 0 0 25%; }
+.col-4 { flex: 0 0 33.333333%; }
+.col-6 { flex: 0 0 50%; }
+.col-8 { flex: 0 0 66.666667%; }
+.col-9 { flex: 0 0 75%; }
+.col-12 { flex: 0 0 100%; }
+
+/* Утилиты */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.text-primary { color: var(--primary-color); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-success { color: var(--success-color); }
+.text-warning { color: var(--warning-color); }
+.text-error { color: var(--error-color); }
+
+.bg-primary { background: var(--primary-color); }
+.bg-secondary { background: var(--bg-secondary); }
+.bg-card { background: var(--bg-card); }
+
+.d-none { display: none; }
+.d-block { display: block; }
+.d-flex { display: flex; }
+.d-inline { display: inline; }
+.d-inline-block { display: inline-block; }
+
+.flex-column { flex-direction: column; }
+.flex-row { flex-direction: row; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+.align-center { align-items: center; }
+.align-start { align-items: flex-start; }
+.align-end { align-items: flex-end; }
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-h-screen { min-height: 100vh; }
+
+.m-0 { margin: 0; }
+.m-1 { margin: 0.25rem; }
+.m-2 { margin: 0.5rem; }
+.m-3 { margin: 0.75rem; }
+.m-4 { margin: 1rem; }
+.m-5 { margin: 1.25rem; }
+.m-6 { margin: 1.5rem; }
+
+.p-0 { padding: 0; }
+.p-1 { padding: 0.25rem; }
+.p-2 { padding: 0.5rem; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.p-5 { padding: 1.25rem; }
+.p-6 { padding: 1.5rem; }
+
+.mt-0 { margin-top: 0; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-5 { margin-top: 1.25rem; }
+.mt-6 { margin-top: 1.5rem; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-5 { margin-bottom: 1.25rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+
+/* Анимации */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--transition-normal);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform var(--transition-normal);
+}
+
+.slide-enter-from {
+  transform: translateX(-100%);
+}
+
+.slide-leave-to {
+  transform: translateX(100%);
+}
+
+/* Скроллбар */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+  
+  .btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8rem;
+  }
+  
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.5rem; }
+}
+
+@media (max-width: 480px) {
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+  
+  .form-input {
+    padding: 0.625rem 0.875rem;
+  }
+}
+
+/* ========================================
+   Toast Notifications - Custom Styles
+   ======================================== */
+
+/* Основной контейнер тостов */
+.Vue-Toastification__container {
+  z-index: 10000 !important;
+}
+
+/* Базовые стили для всех тостов */
+.Vue-Toastification__toast {
+  padding: 1rem 1.25rem !important;
+  background: #1a1a1a !important;
+  border: 1px solid #2a2a2a !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  min-height: 64px !important;
+}
+
+/* Текст тоста */
+.Vue-Toastification__toast-body {
+  color: white !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  padding: 0 !important;
+}
+
+/* Иконка тоста */
+.Vue-Toastification__icon {
+  width: 20px !important;
+  height: 20px !important;
+  margin-right: 12px !important;
+}
+
+/* Кнопка закрытия */
+.Vue-Toastification__close-button {
+  color: rgba(255, 255, 255, 0.6) !important;
+  opacity: 1 !important;
+  font-size: 1.25rem !important;
+  font-weight: 300 !important;
+  padding: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.Vue-Toastification__close-button:hover {
+  color: white !important;
+  opacity: 1 !important;
+}
+
+/* Прогресс-бар */
+.Vue-Toastification__progress-bar {
+  height: 3px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Success Toast */
+.Vue-Toastification__toast--success {
+  border-left: 4px solid #10b981 !important;
+}
+
+.Vue-Toastification__toast--success .Vue-Toastification__icon {
+  color: #10b981 !important;
+}
+
+.Vue-Toastification__toast--success .Vue-Toastification__progress-bar {
+  background: #10b981 !important;
+}
+
+/* Error Toast */
+.Vue-Toastification__toast--error {
+  border-left: 4px solid #ff0000 !important;
+}
+
+.Vue-Toastification__toast--error .Vue-Toastification__icon {
+  color: #ff0000 !important;
+}
+
+.Vue-Toastification__toast--error .Vue-Toastification__progress-bar {
+  background: #ff0000 !important;
+}
+
+/* Warning Toast */
+.Vue-Toastification__toast--warning {
+  border-left: 4px solid #f59e0b !important;
+}
+
+.Vue-Toastification__toast--warning .Vue-Toastification__icon {
+  color: #f59e0b !important;
+}
+
+.Vue-Toastification__toast--warning .Vue-Toastification__progress-bar {
+  background: #f59e0b !important;
+}
+
+/* Info Toast */
+.Vue-Toastification__toast--info {
+  border-left: 4px solid #06b6d4 !important;
+}
+
+.Vue-Toastification__toast--info .Vue-Toastification__icon {
+  color: #06b6d4 !important;
+}
+
+.Vue-Toastification__toast--info .Vue-Toastification__progress-bar {
+  background: #06b6d4 !important;
+}
+
+/* Анимации появления/исчезновения */
+.Vue-Toastification__bounce-enter-active {
+  animation: bounceInRight 0.4s ease !important;
+}
+
+.Vue-Toastification__bounce-leave-active {
+  animation: bounceOutRight 0.4s ease !important;
+}
+
+@keyframes bounceInRight {
+  from {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes bounceOutRight {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .Vue-Toastification__toast {
+    margin: 0 0.5rem !important;
+    padding: 0.875rem 1rem !important;
+    min-height: 56px !important;
+  }
+  
+  .Vue-Toastification__toast-body {
+    font-size: 0.8125rem !important;
+  }
+}

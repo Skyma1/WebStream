@@ -1,0 +1,433 @@
+/**
+ * Сервис для работы с WebRTC через MediaSoup
+ * ОТКЛЮЧЕН - используется RTMP + HLS
+ */
+
+import * as mediasoupClient from 'mediasoup-client'
+import apiService from './api'
+import socketService from './socket'
+
+class WebRTCService {
+    constructor() {
+        this.device = null
+        this.sendTransport = null
+        this.recvTransport = null
+        this.producers = new Map()
+        this.consumers = new Map()
+        this.localStream = null
+        this.isInitialized = false
+    }
+
+    /**
+     * Инициализация WebRTC устройства
+     */
+    async initialize() {
+        console.log('⚠️ WebRTC отключен - используется RTMP + HLS')
+        throw new Error('WebRTC отключен - используется RTMP + HLS')
+    }
+
+    /**
+     * Загрузка RTP capabilities устройства
+     */
+    async loadRtpCapabilities(streamId) {
+        console.log('⚠️ WebRTC отключен - используется RTMP + HLS')
+        throw new Error('WebRTC отключен - используется RTMP + HLS')
+    }
+
+    /**
+     * Создание транспорта для отправки (операторы)
+     */
+    async createSendTransport(streamId) {
+        try {
+            const response = await apiService.post(`/streams/${streamId}/webrtc/transport`, {
+                direction: 'send'
+            })
+
+            const { id, iceParameters, iceCandidates, dtlsParameters } = response.data
+
+            // Создание транспорта
+            this.sendTransport = this.device.createSendTransport({
+                id,
+                iceParameters,
+                iceCandidates,
+                dtlsParameters
+            })
+
+            // Обработчики событий транспорта
+            this.sendTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+                try {
+                    await apiService.post(`/streams/${streamId}/webrtc/transport/${id}/connect`, {
+                        dtlsParameters
+                    })
+                    callback()
+                } catch (error) {
+                    errback(error)
+                }
+            })
+
+            this.sendTransport.on('produce', async ({ kind, rtpParameters }, callback, errback) => {
+                try {
+                    const response = await apiService.post(`/streams/${streamId}/webrtc/producer`, {
+                        transportId: id,
+                        kind,
+                        rtpParameters
+                    })
+                    callback({ id: response.data.id })
+                } catch (error) {
+                    errback(error)
+                }
+            })
+
+            console.log('✅ Send transport создан')
+            return this.sendTransport
+        } catch (error) {
+            console.error('❌ Ошибка создания send transport:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Создание транспорта для получения (зрители)
+     */
+    async createRecvTransport(streamId) {
+        try {
+            const response = await apiService.post(`/streams/${streamId}/webrtc/transport`, {
+                direction: 'recv'
+            })
+
+            const { id, iceParameters, iceCandidates, dtlsParameters } = response.data
+
+            // Создание транспорта
+            this.recvTransport = this.device.createRecvTransport({
+                id,
+                iceParameters,
+                iceCandidates,
+                dtlsParameters
+            })
+
+            // Обработчики событий транспорта
+            this.recvTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+                try {
+                    await apiService.post(`/streams/${streamId}/webrtc/transport/${id}/connect`, {
+                        dtlsParameters
+                    })
+                    callback()
+                } catch (error) {
+                    errback(error)
+                }
+            })
+
+            console.log('✅ Recv transport создан')
+            return this.recvTransport
+        } catch (error) {
+            console.error('❌ Ошибка создания recv transport:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Получение медиа потока с камеры и микрофона
+     */
+    async getUserMedia(constraints = {}) {
+        console.log('⚠️ WebRTC отключен - используется RTMP + HLS')
+        throw new Error('WebRTC отключен - используется RTMP + HLS')
+    }
+
+    /**
+     * Создание продюсера для отправки видео
+     */
+    async produceVideo(streamId, videoTrack) {
+        try {
+            if (!this.sendTransport) {
+                throw new Error('Send transport не создан')
+            }
+
+            const producer = await this.sendTransport.produce({
+                track: videoTrack,
+                encodings: [
+                    {
+                        rid: 'r0',
+                        maxBitrate: 100000,
+                        scalabilityMode: 'S1T3'
+                    },
+                    {
+                        rid: 'r1',
+                        maxBitrate: 300000,
+                        scalabilityMode: 'S1T3'
+                    },
+                    {
+                        rid: 'r2',
+                        maxBitrate: 900000,
+                        scalabilityMode: 'S1T3'
+                    }
+                ],
+                codecOptions: {
+                    videoGoogleStartBitrate: 1000
+                }
+            })
+
+            this.producers.set('video', producer)
+            
+            // Уведомление о новом продюсере через Socket.IO
+            socketService.notifyNewProducer(streamId, producer.id, 'video')
+            
+            console.log('✅ Video producer создан')
+            return producer
+        } catch (error) {
+            console.error('❌ Ошибка создания video producer:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Создание продюсера для отправки аудио
+     */
+    async produceAudio(streamId, audioTrack) {
+        try {
+            if (!this.sendTransport) {
+                throw new Error('Send transport не создан')
+            }
+
+            const producer = await this.sendTransport.produce({
+                track: audioTrack
+            })
+
+            this.producers.set('audio', producer)
+            
+            // Уведомление о новом продюсере через Socket.IO
+            socketService.notifyNewProducer(streamId, producer.id, 'audio')
+            
+            console.log('✅ Audio producer создан')
+            return producer
+        } catch (error) {
+            console.error('❌ Ошибка создания audio producer:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Создание консьюмера для получения видео
+     */
+    async consumeVideo(streamId, producerId, videoElement) {
+        try {
+            if (!this.recvTransport) {
+                throw new Error('Recv transport не создан')
+            }
+
+            const response = await apiService.post(`/streams/${streamId}/webrtc/consumer`, {
+                transportId: this.recvTransport.id,
+                producerId,
+                rtpCapabilities: this.device.rtpCapabilities
+            })
+
+            const { id, kind, rtpParameters } = response.data
+
+            const consumer = await this.recvTransport.consume({
+                id,
+                producerId,
+                kind,
+                rtpParameters
+            })
+
+            // Подключение к видео элементу
+            const stream = new MediaStream([consumer.track])
+            videoElement.srcObject = stream
+
+            this.consumers.set(producerId, consumer)
+            
+            console.log('✅ Video consumer создан')
+            return consumer
+        } catch (error) {
+            console.error('❌ Ошибка создания video consumer:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Создание консьюмера для получения аудио
+     */
+    async consumeAudio(streamId, producerId, audioElement) {
+        try {
+            if (!this.recvTransport) {
+                throw new Error('Recv transport не создан')
+            }
+
+            const response = await apiService.post(`/streams/${streamId}/webrtc/consumer`, {
+                transportId: this.recvTransport.id,
+                producerId,
+                rtpCapabilities: this.device.rtpCapabilities
+            })
+
+            const { id, kind, rtpParameters } = response.data
+
+            const consumer = await this.recvTransport.consume({
+                id,
+                producerId,
+                kind,
+                rtpParameters
+            })
+
+            // Подключение к аудио элементу
+            const stream = new MediaStream([consumer.track])
+            audioElement.srcObject = stream
+
+            this.consumers.set(producerId, consumer)
+            
+            console.log('✅ Audio consumer создан')
+            return consumer
+        } catch (error) {
+            console.error('❌ Ошибка создания audio consumer:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Получение списка продюсеров в трансляции
+     */
+    async getProducers(streamId) {
+        try {
+            const response = await apiService.get(`/streams/${streamId}/webrtc/producers`)
+            return response.data
+        } catch (error) {
+            console.error('❌ Ошибка получения продюсеров:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Остановка продюсера
+     */
+    async stopProducer(kind) {
+        try {
+            const producer = this.producers.get(kind)
+            if (producer) {
+                producer.close()
+                this.producers.delete(kind)
+                console.log(`✅ ${kind} producer остановлен`)
+            }
+        } catch (error) {
+            console.error(`❌ Ошибка остановки ${kind} producer:`, error)
+        }
+    }
+
+    /**
+     * Остановка консьюмера
+     */
+    async stopConsumer(producerId) {
+        try {
+            const consumer = this.consumers.get(producerId)
+            if (consumer) {
+                consumer.close()
+                this.consumers.delete(producerId)
+                console.log(`✅ Consumer для ${producerId} остановлен`)
+            }
+        } catch (error) {
+            console.error(`❌ Ошибка остановки consumer:`, error)
+        }
+    }
+
+    /**
+     * Остановка всех продюсеров
+     */
+    async stopAllProducers() {
+        try {
+            for (const [kind, producer] of this.producers) {
+                producer.close()
+            }
+            this.producers.clear()
+            console.log('✅ Все продюсеры остановлены')
+        } catch (error) {
+            console.error('❌ Ошибка остановки продюсеров:', error)
+        }
+    }
+
+    /**
+     * Остановка всех консьюмеров
+     */
+    async stopAllConsumers() {
+        try {
+            for (const [producerId, consumer] of this.consumers) {
+                consumer.close()
+            }
+            this.consumers.clear()
+            console.log('✅ Все консьюмеры остановлены')
+        } catch (error) {
+            console.error('❌ Ошибка остановки консьюмеров:', error)
+        }
+    }
+
+    /**
+     * Остановка медиа потока
+     */
+    async stopLocalStream() {
+        try {
+            if (this.localStream) {
+                this.localStream.getTracks().forEach(track => track.stop())
+                this.localStream = null
+                console.log('✅ Локальный медиа поток остановлен')
+            }
+        } catch (error) {
+            console.error('❌ Ошибка остановки медиа потока:', error)
+        }
+    }
+
+    /**
+     * Закрытие транспортов
+     */
+    async closeTransports() {
+        try {
+            if (this.sendTransport) {
+                this.sendTransport.close()
+                this.sendTransport = null
+            }
+            
+            if (this.recvTransport) {
+                this.recvTransport.close()
+                this.recvTransport = null
+            }
+            
+            console.log('✅ Транспорты закрыты')
+        } catch (error) {
+            console.error('❌ Ошибка закрытия транспортов:', error)
+        }
+    }
+
+    /**
+     * Полная очистка WebRTC соединения
+     */
+    async cleanup() {
+        try {
+            await this.stopAllProducers()
+            await this.stopAllConsumers()
+            await this.stopLocalStream()
+            await this.closeTransports()
+            
+            this.device = null
+            this.isInitialized = false
+            
+            console.log('✅ WebRTC соединение очищено')
+        } catch (error) {
+            console.error('❌ Ошибка очистки WebRTC:', error)
+        }
+    }
+
+    /**
+     * Получение статистики
+     */
+    getStats() {
+        return {
+            isInitialized: this.isInitialized,
+            hasDevice: !!this.device,
+            hasSendTransport: !!this.sendTransport,
+            hasRecvTransport: !!this.recvTransport,
+            producersCount: this.producers.size,
+            consumersCount: this.consumers.size,
+            hasLocalStream: !!this.localStream
+        }
+    }
+}
+
+// Создание единственного экземпляра сервиса
+const webrtcService = new WebRTCService()
+
+export default webrtcService
