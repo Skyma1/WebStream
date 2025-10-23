@@ -38,9 +38,12 @@ class WebStreamApp {
             cors: {
                 origin: [
                     process.env.FRONTEND_URL || "http://localhost:8080",
-                    "http://frontend:8080"
+                    "http://frontend:8080",
+                    "http://151.241.228.125:8081",
+                    "http://151.241.228.125"
                 ],
-                methods: ["GET", "POST"]
+                methods: ["GET", "POST"],
+                credentials: true
             }
         });
         
@@ -72,9 +75,30 @@ class WebStreamApp {
         // }));
 
         // CORS
+        const allowedOrigins = [
+            process.env.FRONTEND_URL || "http://localhost:8080",
+            "http://frontend:8080",
+            "http://151.241.228.125:8081",
+            "http://151.241.228.125",
+            "http://localhost:8081",
+            "http://localhost:8080"
+        ];
+        
         this.app.use(cors({
-            origin: true, // Разрешить все origins для отладки
-            credentials: true
+            origin: function(origin, callback) {
+                // Разрешаем запросы без origin (например, мобильные приложения или curl)
+                if (!origin) return callback(null, true);
+                
+                if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+                    callback(null, true);
+                } else {
+                    console.warn('⚠️ CORS blocked origin:', origin);
+                    callback(null, true); // Временно разрешаем все для отладки
+                }
+            },
+            credentials: true,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
         }));
 
         // Rate limiting
