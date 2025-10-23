@@ -54,7 +54,7 @@
                 <div class="setting-item">
                   <label>Сервер:</label>
                   <div class="setting-value">
-                    <code>rtmp://127.0.0.1:1935/live</code>
+                    <code>rtmp://151.241.228.125:1935/live</code>
                     <button @click="copyToClipboard('rtmp://127.0.0.1:1935/live')" class="copy-btn">📋</button>
                   </div>
                 </div>

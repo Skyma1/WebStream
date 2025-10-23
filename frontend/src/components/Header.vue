@@ -53,7 +53,7 @@
             </div>
           </div>
           
-          <div class="profile-menu-items">
+          <!-- <div class="profile-menu-items">
             <router-link to="/profile" class="profile-menu-item" @click="closeProfileMenu">
               <span class="menu-icon">👤</span>
               <span>Профиль</span>
@@ -63,7 +63,7 @@
               <span class="menu-icon">⚙️</span>
               <span>Настройки</span>
             </router-link>
-            
+             -->
             <div class="profile-menu-divider"></div>
             
             <button class="profile-menu-item logout-item" @click="handleLogout">
