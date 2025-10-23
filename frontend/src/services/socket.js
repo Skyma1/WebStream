@@ -173,7 +173,13 @@ class SocketService {
 
     // Ошибки
     this.socket.on('error', (error) => {
-      console.error('❌ Ошибка WebSocket:', error)
+      console.error('❌ Ошибка WebSocket:', {
+        error: error.message || error,
+        socketId: this.socket?.id,
+        isConnected: this.isConnected,
+        timestamp: new Date().toISOString()
+      })
+      // Не пытаемся переподключиться при ошибке, пусть это делает disconnect handler
     })
   }
 

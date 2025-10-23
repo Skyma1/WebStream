@@ -21,6 +21,17 @@ class SocketService {
     setupEventHandlers() {
         this.io.on('connection', (socket) => {
             console.log(`🔌 Новое подключение: ${socket.id}`);
+            
+            // Глобальный обработчик ошибок сокета
+            socket.on('error', (error) => {
+                console.error('❌ Ошибка сокета:', {
+                    socketId: socket.id,
+                    error: error.message || error,
+                    stack: error.stack,
+                    timestamp: new Date().toISOString()
+                });
+                // Не отправляем повторную ошибку, просто логируем
+            });
 
             // Аутентификация пользователя
             socket.on('authenticate', async (data) => {
@@ -60,6 +71,7 @@ class SocketService {
                     const user = this.userSessions.get(socket.id);
                     if (!user) {
                         socket.emit('error', { message: 'Пользователь не аутентифицирован' });
+                        socket.disconnect();
                         return;
                     }
 
@@ -109,6 +121,7 @@ class SocketService {
                 } catch (error) {
                     console.error('❌ Ошибка присоединения к трансляции:', error);
                     socket.emit('error', { message: 'Ошибка присоединения к трансляции' });
+                    socket.disconnect();
                 }
             });
 
@@ -146,6 +159,7 @@ class SocketService {
                     const user = this.userSessions.get(socket.id);
                     if (!user) {
                         socket.emit('error', { message: 'Пользователь не аутентифицирован' });
+                        socket.disconnect();
                         return;
                     }
 
@@ -191,6 +205,7 @@ class SocketService {
                 } catch (error) {
                     console.error('❌ Ошибка отправки сообщения:', error);
                     socket.emit('error', { message: 'Ошибка отправки сообщения' });
+                    socket.disconnect();
                 }
             });
 
@@ -200,6 +215,7 @@ class SocketService {
                     const user = this.userSessions.get(socket.id);
                     if (!user || user.role !== 'admin') {
                         socket.emit('error', { message: 'Недостаточно прав' });
+                        socket.disconnect();
                         return;
                     }
 
@@ -232,6 +248,7 @@ class SocketService {
                 } catch (error) {
                     console.error('❌ Ошибка отправки системного сообщения:', error);
                     socket.emit('error', { message: 'Ошибка отправки системного сообщения' });
+                    socket.disconnect();
                 }
             });
 
