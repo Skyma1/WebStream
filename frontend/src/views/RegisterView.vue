@@ -253,28 +253,46 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.75rem;
   border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  text-transform: none;
+  letter-spacing: 0.025em;
+  min-height: 2.75rem;
 }
 
 .btn-primary {
-  background: #2a2a2a;
-  color: white;
-  border: 1px solid #3a3a3a;
+  background: linear-gradient(135deg, #53fc18 0%, #00d4aa 100%);
+  color: #000;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(83, 252, 24, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #3a3a3a;
-  border-color: #4a4a4a;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #4ae015 0%, #00c19e 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(83, 252, 24, 0.4);
+}
+
+.btn-primary:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-primary:hover:not(:disabled):before {
+  left: 100%;
 }
 
 .btn:disabled {

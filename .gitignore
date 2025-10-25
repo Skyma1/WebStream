@@ -48,9 +48,7 @@ nginx/ssl/
 *.key
 *.crt
 
-# Бэкапы
-backups/
-*.sql
+
 
 # Сборка
 dist/
