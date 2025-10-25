@@ -214,7 +214,7 @@
                 </select>
               </div>
               <div class="form-group">
-                      <label for="expiresAt" class="form-label">Срок действия</label>
+                <label for="expiresAt" class="form-label">Срок действия (опционально)</label>
                 <input
                         id="expiresAt"
                         v-model="newCode.expiresAt"
@@ -222,18 +222,7 @@
                   class="form-input"
                 />
               </div>
-              <div class="form-group">
-                      <label for="maxUses" class="form-label">Максимум использований</label>
-                      <input
-                        id="maxUses"
-                        v-model="newCode.maxUses"
-                        type="number"
-                        min="1"
-                        class="form-input"
-                        placeholder="1"
-                      />
-                    </div>
-                  </div>
+            </div>
                   <div class="form-actions">
                 <button 
                       @click="createCode" 
@@ -254,10 +243,8 @@
                 <tr>
                   <th>Код</th>
                   <th>Роль</th>
-                      <th>Использований</th>
-                      <th>Максимум</th>
-                      <th>Создан</th>
-                      <th>Истекает</th>
+                  <th>Создан</th>
+                  <th>Использован</th>
                   <th>Статус</th>
                   <th>Действия</th>
                 </tr>
@@ -272,13 +259,11 @@
                           {{ getRoleText(code.role) }}
                     </span>
                   </td>
-                      <td>{{ code.used_count || 0 }}</td>
-                      <td>{{ code.max_uses || '∞' }}</td>
                       <td>{{ formatDate(code.created_at) }}</td>
-                      <td>{{ formatDate(code.expires_at) }}</td>
+                      <td>{{ code.is_used ? formatDate(code.used_at) : 'Не использован' }}</td>
                   <td>
-                        <span class="status-badge" :class="{ 'active': isCodeActive(code) }">
-                          {{ isCodeActive(code) ? 'Активен' : 'Истек' }}
+                        <span class="status-badge" :class="{ 'active': !code.is_used }">
+                          {{ code.is_used ? 'Использован' : 'Активен' }}
                     </span>
                   </td>
                   <td>
@@ -340,8 +325,7 @@ const codes = ref([])
 // Форма создания кода
 const newCode = ref({
   role: 'viewer',
-  expiresAt: '',
-  maxUses: 1
+  expiresAt: ''
 })
 
 // Табы
@@ -354,7 +338,7 @@ const tabs = [
 
 // Computed
 const isCodeActive = (code) => {
-  if (code.max_uses && code.used_count >= code.max_uses) return false
+  if (code.is_used) return false
   if (code.expires_at && new Date(code.expires_at) < new Date()) return false
   return true
 }
@@ -477,8 +461,7 @@ const createCode = async () => {
     
     const codeData = {
       role: newCode.value.role,
-      expires_at: newCode.value.expiresAt || null,
-      max_uses: newCode.value.maxUses || null
+      expires_at: newCode.value.expiresAt || null
     }
     
     const response = await apiService.post('/admin/codes', codeData)
@@ -487,8 +470,7 @@ const createCode = async () => {
     // Сброс формы
     newCode.value = {
       role: 'viewer',
-      expiresAt: '',
-      maxUses: 1
+      expiresAt: ''
     }
     
     toast.success('Код создан успешно')
