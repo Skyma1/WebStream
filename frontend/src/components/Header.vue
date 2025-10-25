@@ -18,8 +18,8 @@
           <span class="logo-text">WebStream</span>
         </div>
       </div>
-      <!-- Поиск -->
-      <div class="header-search">
+      <!-- Поиск (скрыт) -->
+      <!-- <div class="header-search">
         <div class="search-container">
           <span class="search-icon">🔍</span>
           <input 
@@ -30,7 +30,7 @@
             @keyup.enter="handleSearch"
           />
         </div>
-      </div>
+      </div> -->
 
       <!-- Правая часть -->
       <div class="header-right">
@@ -244,6 +244,7 @@ onUnmounted(() => {
 
 /* Поиск */
 .header-search {
+  opacity: 0;
   flex: 1;
   max-width: 400px;
   margin: 0 2rem;

@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS secret_codes (
     id SERIAL PRIMARY KEY,
     code VARCHAR(255) UNIQUE NOT NULL,
     code_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL CHECK (role IN ('viewer', 'operator')),
+    role VARCHAR(50) NOT NULL CHECK (role IN ('viewer', 'operator', 'admin')),
     prefix VARCHAR(50),
     is_used BOOLEAN DEFAULT false,
     used_by INTEGER REFERENCES users(id),
@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS streams (
     operator_id INTEGER NOT NULL REFERENCES users(id),
     title VARCHAR(255) NOT NULL,
     description TEXT,
+    stream_key VARCHAR(255) UNIQUE NOT NULL,
     is_active BOOLEAN DEFAULT true,
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ended_at TIMESTAMP,
@@ -126,4 +127,11 @@ UPDATE users SET username = email WHERE username IS NULL OR username = '';
 COMMENT ON COLUMN users.username IS 'Уникальный никнейм пользователя';
 COMMENT ON COLUMN users.description IS 'Описание профиля пользователя';
 COMMENT ON COLUMN users.avatar IS 'Аватар пользователя в формате base64';
+
+-- Миграция для добавления stream_key в таблицу streams
+ALTER TABLE streams ADD COLUMN IF NOT EXISTS stream_key VARCHAR(255) UNIQUE;
+
+-- Обновляем существующие трансляции, генерируя для них ключи
+UPDATE streams SET stream_key = 'STREAM' || id::text || '_' || extract(epoch from created_at)::text 
+WHERE stream_key IS NULL;
 

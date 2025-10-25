@@ -235,18 +235,29 @@ class DatabaseService {
     // === МЕТОДЫ ДЛЯ РАБОТЫ С ТРАНСЛЯЦИЯМИ ===
 
     /**
+     * Генерация сложного ключа трансляции
+     */
+    generateStreamKey() {
+        const timestamp = Date.now().toString(36).toUpperCase();
+        const random = Math.random().toString(36).substring(2, 12).toUpperCase();
+        const prefix = 'STREAM';
+        return `${prefix}${timestamp}${random}`;
+    }
+
+    /**
      * Создание новой трансляции
      */
     async createStream(streamData) {
         const { operatorId, title, description } = streamData;
+        const streamKey = this.generateStreamKey();
         
         const query = `
-            INSERT INTO streams (operator_id, title, description, is_active)
-            VALUES ($1, $2, $3, false)
-            RETURNING id, operator_id, title, description, is_active, started_at
+            INSERT INTO streams (operator_id, title, description, is_active, stream_key)
+            VALUES ($1, $2, $3, false, $4)
+            RETURNING id, operator_id, title, description, is_active, started_at, stream_key
         `;
         
-        const result = await this.query(query, [operatorId, title, description]);
+        const result = await this.query(query, [operatorId, title, description, streamKey]);
         return result.rows[0];
     }
 

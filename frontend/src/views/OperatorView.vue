@@ -61,8 +61,8 @@
                 <div class="setting-item">
                   <label>Ключ потока:</label>
                   <div class="setting-value">
-                    <code>{{ currentStream.id }}</code>
-                    <button @click="copyToClipboard(currentStream.id)" class="copy-btn">📋</button>
+                    <code>{{ currentStream.stream_key || currentStream.id }}</code>
+                    <button @click="copyToClipboard(currentStream.stream_key || currentStream.id)" class="copy-btn">📋</button>
                   </div>
                 </div>
               </div>
@@ -74,7 +74,7 @@
                   <li>Перейдите в Настройки → Поток</li>
                   <li>Выберите "Пользовательский..." в разделе Сервис</li>
                   <li>Введите сервер: <code>rtmp://127.0.0.1:1935/live</code></li>
-                  <li>Введите ключ потока: <code>{{ currentStream.id }}</code></li>
+                  <li>Введите ключ потока: <code>{{ currentStream.stream_key || currentStream.id }}</code></li>
                   <li>Нажмите "ОК" и "Начать трансляцию"</li>
                 </ol>
               </div>
