@@ -104,3 +104,26 @@ COMMENT ON TABLE streams IS 'Активные трансляции операт�
 COMMENT ON TABLE chat_messages IS 'Сообщения в чате трансляций';
 COMMENT ON TABLE user_sessions IS 'Активные сессии пользователей';
 
+-- Миграция для добавления полей профиля пользователя
+-- Добавляем поля username, description и avatar в таблицу users
+
+-- Добавляем поле username (уникальное)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE;
+
+-- Добавляем поле description
+ALTER TABLE users ADD COLUMN IF NOT EXISTS description TEXT;
+
+-- Добавляем поле avatar (для хранения base64 изображения)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
+
+-- Создаем индекс для быстрого поиска по username
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
+-- Обновляем существующих пользователей, устанавливая username = email (если username пустой)
+UPDATE users SET username = email WHERE username IS NULL OR username = '';
+
+-- Комментарии к полям
+COMMENT ON COLUMN users.username IS 'Уникальный никнейм пользователя';
+COMMENT ON COLUMN users.description IS 'Описание профиля пользователя';
+COMMENT ON COLUMN users.avatar IS 'Аватар пользователя в формате base64';
+
