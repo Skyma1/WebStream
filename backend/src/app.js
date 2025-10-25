@@ -79,6 +79,7 @@ class WebStreamApp {
             process.env.FRONTEND_URL || "http://localhost:8080",
             "http://frontend:8080",
             "http://151.241.228.125:8081",
+            "http://151.241.228.125:8080",
             "http://151.241.228.125",
             "http://localhost:8081",
             "http://localhost:8080"
