@@ -74,7 +74,7 @@ const isLive = ref(false)
 
 // Computed
 const hlsUrl = computed(() => {
-  return `http://localhost:8083/hls/${props.streamName}.m3u8`
+  return `http://151.241.228.125:8083/hls/${props.streamName}.m3u8`
 })
 
 // Methods
