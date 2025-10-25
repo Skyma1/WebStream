@@ -4,9 +4,9 @@
       <div class="container">
         <!-- Заголовок -->
         <div class="admin-header">
-          <h1>Панель администратора</h1>
+            <h1>Панель администратора</h1>
           <p>Управление системой, пользователями и трансляциями</p>
-        </div>
+          </div>
 
         <!-- Табы -->
         <div class="admin-tabs">
@@ -19,16 +19,16 @@
           >
             <span class="tab-icon">{{ tab.icon }}</span>
             <span class="tab-label">{{ tab.label }}</span>
-          </button>
+            </button>
         </div>
 
         <!-- Контент табов -->
         <div class="tab-content">
-          <!-- Статистика -->
+        <!-- Статистика -->
           <div v-if="activeTab === 'stats'" class="tab-panel">
-            <div class="stats-section">
-              <h2>Статистика системы</h2>
-              <div class="stats-grid">
+        <div class="stats-section">
+          <h2>Статистика системы</h2>
+          <div class="stats-grid">
                 <div class="stat-card">
                   <div class="stat-icon">👥</div>
                   <div class="stat-content">
@@ -50,13 +50,13 @@
                     <div class="stat-label">Активных трансляций</div>
                   </div>
                 </div>
-                <div class="stat-card">
-                  <div class="stat-icon">🔑</div>
-                  <div class="stat-content">
-                    <div class="stat-value">{{ stats.totalCodes || 0 }}</div>
-                    <div class="stat-label">Всего кодов</div>
-                  </div>
-                </div>
+            <div class="stat-card">
+              <div class="stat-icon">🔑</div>
+              <div class="stat-content">
+                <div class="stat-value">{{ stats.totalCodes || 0 }}</div>
+                <div class="stat-label">Всего кодов</div>
+              </div>
+            </div>
               </div>
             </div>
           </div>
@@ -193,36 +193,36 @@
                     <span class="btn-icon">🔄</span>
                     Обновить
                   </button>
-                </div>
-              </div>
+          </div>
+        </div>
 
-              <!-- Создание нового кода -->
-              <div class="create-code-section">
+        <!-- Создание нового кода -->
+        <div class="create-code-section">
                 <h3>Создать новый код</h3>
-                <div class="create-code-form">
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="role" class="form-label">Роль</label>
-                      <select 
-                        id="role"
-                        v-model="newCode.role"
+          <div class="create-code-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="role" class="form-label">Роль</label>
+                <select 
+                  id="role"
+                  v-model="newCode.role"
                         class="form-select"
-                      >
-                        <option value="viewer">Зритель</option>
-                        <option value="operator">Оператор</option>
+                >
+                  <option value="viewer">Зритель</option>
+                  <option value="operator">Оператор</option>
                         <option value="admin">Администратор</option>
-                      </select>
-                    </div>
-                    <div class="form-group">
+                </select>
+              </div>
+              <div class="form-group">
                       <label for="expiresAt" class="form-label">Срок действия</label>
-                      <input
+                <input
                         id="expiresAt"
                         v-model="newCode.expiresAt"
                         type="datetime-local"
-                        class="form-input"
-                      />
-                    </div>
-                    <div class="form-group">
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
                       <label for="maxUses" class="form-label">Максимум использований</label>
                       <input
                         id="maxUses"
@@ -235,53 +235,53 @@
                     </div>
                   </div>
                   <div class="form-actions">
-                    <button 
+                <button 
                       @click="createCode" 
-                      class="btn btn-primary"
+                  class="btn btn-primary"
                       :disabled="isCreatingCode"
-                    >
+                >
                       <span v-if="isCreatingCode" class="loading-spinner-small"></span>
                       {{ isCreatingCode ? 'Создание...' : 'Создать код' }}
-                    </button>
-                  </div>
-                </div>
-              </div>
+                </button>
+            </div>
+          </div>
+        </div>
 
               <!-- Список кодов -->
-              <div class="codes-table-container">
-                <table class="codes-table">
-                  <thead>
-                    <tr>
-                      <th>Код</th>
-                      <th>Роль</th>
+          <div class="codes-table-container">
+            <table class="codes-table">
+              <thead>
+                <tr>
+                  <th>Код</th>
+                  <th>Роль</th>
                       <th>Использований</th>
                       <th>Максимум</th>
                       <th>Создан</th>
                       <th>Истекает</th>
-                      <th>Статус</th>
-                      <th>Действия</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                  <th>Статус</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody>
                     <tr v-for="code in codes" :key="code.id">
                       <td>
                         <code class="code-value">{{ code.code }}</code>
-                      </td>
-                      <td>
+                  </td>
+                  <td>
                         <span class="role-badge" :class="`role-${code.role}`">
                           {{ getRoleText(code.role) }}
-                        </span>
-                      </td>
+                    </span>
+                  </td>
                       <td>{{ code.used_count || 0 }}</td>
                       <td>{{ code.max_uses || '∞' }}</td>
                       <td>{{ formatDate(code.created_at) }}</td>
                       <td>{{ formatDate(code.expires_at) }}</td>
-                      <td>
+                  <td>
                         <span class="status-badge" :class="{ 'active': isCodeActive(code) }">
                           {{ isCodeActive(code) ? 'Активен' : 'Истек' }}
-                        </span>
-                      </td>
-                      <td>
+                    </span>
+                  </td>
+                  <td>
                         <div class="action-buttons">
                           <button 
                             @click="copyCode(code.code)"
@@ -289,17 +289,17 @@
                           >
                             Копировать
                           </button>
-                          <button 
+                    <button 
                             @click="deleteCode(code.id)"
-                            class="btn btn-sm btn-error"
-                          >
-                            Удалить
-                          </button>
+                      class="btn btn-sm btn-error"
+                    >
+                      Удалить
+                    </button>
                         </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
               </div>
             </div>
           </div>

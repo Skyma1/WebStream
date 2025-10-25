@@ -1,7 +1,66 @@
 <template>
   <div class="login-page">
     <div class="login-container">
-      <div class="login-card">
+      <!-- Форма создания первого администратора -->
+      <div v-if="isFirstUser" class="login-card first-admin-card">
+        <div class="login-header">
+          <h1>🎉 Добро пожаловать в WebStream!</h1>
+          <p>Создайте первого администратора системы</p>
+        </div>
+
+        <form @submit.prevent="handleCreateFirstAdmin" class="login-form">
+          <div class="form-group">
+            <label for="username" class="form-label">Имя пользователя</label>
+            <input
+              id="username"
+              v-model="adminForm.username"
+              type="text"
+              class="form-input"
+              placeholder="admin"
+              required
+              :disabled="isLoading"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input
+              id="email"
+              v-model="adminForm.email"
+              type="email"
+              class="form-input"
+              placeholder="admin@example.com"
+              required
+              :disabled="isLoading"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">Пароль</label>
+            <input
+              id="password"
+              v-model="adminForm.password"
+              type="password"
+              class="form-input"
+              placeholder="••••••••"
+              required
+              :disabled="isLoading"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            :disabled="isLoading"
+          >
+            <span v-if="isLoading">Создание...</span>
+            <span v-else>🚀 Создать администратора</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Обычная форма входа -->
+      <div v-else class="login-card">
         <div class="login-header">
           <h1>Вход</h1>
           <p>Введите данные для входа в систему</p>
@@ -73,6 +132,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { useToast } from 'vue-toastification'
+import apiService from '@/services/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -86,7 +146,15 @@ const form = ref({
   secretCode: ''
 })
 
+// Форма для создания первого администратора
+const adminForm = ref({
+  username: '',
+  email: '',
+  password: ''
+})
+
 const isLoading = ref(false)
+const isFirstUser = ref(false)
 
 // Валидация формы
 const isFormValid = computed(() => {
@@ -95,6 +163,51 @@ const isFormValid = computed(() => {
          form.value.secretCode &&
          form.value.email.includes('@')
 })
+
+// Валидация формы администратора
+const isAdminFormValid = computed(() => {
+  return adminForm.value.username && 
+         adminForm.value.email && 
+         adminForm.value.password &&
+         adminForm.value.email.includes('@') &&
+         adminForm.value.username.length >= 3
+})
+
+// Проверка первого пользователя
+const checkFirstUser = async () => {
+  try {
+    const response = await apiService.get('/auth/check-first-user')
+    isFirstUser.value = response.data.isFirstUser
+  } catch (error) {
+    console.error('❌ Ошибка проверки первого пользователя:', error)
+  }
+}
+
+// Создание первого администратора
+const handleCreateFirstAdmin = async () => {
+  if (!isAdminFormValid.value) return
+
+  isLoading.value = true
+
+  try {
+    const response = await apiService.post('/auth/create-first-admin', adminForm.value)
+    
+    if (response.data.success) {
+      // Сохраняем токен и пользователя
+      localStorage.setItem('token', response.data.token)
+      authStore.setUser(response.data.user)
+      
+      toast.success('🎉 Администратор создан! Добро пожаловать!')
+      router.push('/dashboard')
+    }
+  } catch (error) {
+    console.error('❌ Ошибка создания администратора:', error)
+    const errorMessage = error.response?.data?.error || 'Ошибка создания администратора'
+    toast.error(errorMessage)
+  } finally {
+    isLoading.value = false
+  }
+}
 
 // Обработка входа
 const handleLogin = async () => {
@@ -132,6 +245,9 @@ const handleLogin = async () => {
 
 // Автозаполнение для демо
 onMounted(() => {
+  // Проверяем, первый ли это пользователь
+  checkFirstUser()
+  
   // Заполнение демо-данных для тестирования
   if (import.meta.env.DEV) {
     form.value.email = 'admin@webstream.local'
@@ -163,6 +279,12 @@ onMounted(() => {
   padding: 2rem;
   backdrop-filter: blur(10px);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.first-admin-card {
+  border: 2px solid #53fc18;
+  background: rgba(83, 252, 24, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(83, 252, 24, 0.2);
 }
 
 .login-header {

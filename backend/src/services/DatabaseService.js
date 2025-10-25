@@ -378,6 +378,15 @@ class DatabaseService {
         const result = await this.query(query);
         return result.rowCount;
     }
+
+    /**
+     * Получение количества пользователей
+     */
+    async getUserCount() {
+        const query = 'SELECT COUNT(*) as count FROM users';
+        const result = await this.query(query);
+        return parseInt(result.rows[0].count);
+    }
 }
 
 module.exports = DatabaseService;

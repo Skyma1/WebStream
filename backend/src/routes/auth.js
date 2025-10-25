@@ -47,6 +47,174 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/auth/check-first-user:
+ *   get:
+ *     summary: Проверка первого пользователя
+ *     tags: [Аутентификация]
+ *     responses:
+ *       200:
+ *         description: Статус первого пользователя
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isFirstUser:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ */
+router.get('/check-first-user', async (req, res) => {
+    try {
+        const userCount = await req.app.locals.databaseService.getUserCount();
+        
+        if (userCount === 0) {
+            return res.json({
+                isFirstUser: true,
+                message: 'Система готова к созданию первого администратора'
+            });
+        }
+        
+        return res.json({
+            isFirstUser: false,
+            message: 'Пользователи уже существуют'
+        });
+    } catch (error) {
+        console.error('❌ Ошибка проверки первого пользователя:', error);
+        res.status(500).json({
+            error: 'Ошибка проверки первого пользователя',
+            code: 'CHECK_FIRST_USER_ERROR'
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /api/auth/create-first-admin:
+ *   post:
+ *     summary: Создание первого администратора
+ *     tags: [Аутентификация]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 20
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *     responses:
+ *       201:
+ *         description: Администратор создан
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         description: Ошибка валидации
+ *       409:
+ *         description: Пользователи уже существуют
+ */
+router.post('/create-first-admin', [
+    body('username')
+        .isLength({ min: 3, max: 20 })
+        .withMessage('Имя пользователя должно быть от 3 до 20 символов')
+        .matches(/^[a-zA-Z0-9_]+$/)
+        .withMessage('Имя пользователя может содержать только буквы, цифры и подчеркивания'),
+    body('email')
+        .isEmail()
+        .withMessage('Некорректный email'),
+    body('password')
+        .isLength({ min: 6 })
+        .withMessage('Пароль должен быть не менее 6 символов')
+], async (req, res) => {
+    try {
+        // Проверяем, что это действительно первый пользователь
+        const userCount = await req.app.locals.databaseService.getUserCount();
+        
+        if (userCount > 0) {
+            return res.status(409).json({
+                error: 'Пользователи уже существуют. Используйте обычную регистрацию.',
+                code: 'USERS_EXIST'
+            });
+        }
+
+        // Проверка валидации
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Ошибка валидации данных',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
+        const { username, email, password } = req.body;
+
+        // Проверка уникальности
+        const existingUser = await req.app.locals.databaseService.getUserByEmail(email);
+        if (existingUser) {
+            return res.status(400).json({
+                error: 'Пользователь с таким email уже существует',
+                code: 'USER_EXISTS'
+            });
+        }
+
+        // Создание первого администратора
+        const user = await req.app.locals.databaseService.createUser({
+            username,
+            email,
+            password,
+            role: 'admin',
+            isVerified: true
+        });
+
+        // Генерация JWT токена
+        const token = jwt.sign(
+            { 
+                userId: user.id, 
+                email: user.email, 
+                role: user.role 
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.status(201).json({
+            success: true,
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                created_at: user.created_at
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Ошибка создания первого администратора:', error);
+        res.status(500).json({
+            error: 'Ошибка создания администратора',
+            code: 'CREATE_ADMIN_ERROR'
+        });
+    }
+});
+
+/**
+ * @swagger
  * /api/auth/register:
  *   post:
  *     summary: Регистрация нового пользователя
