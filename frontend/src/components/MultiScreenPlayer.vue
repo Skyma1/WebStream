@@ -66,8 +66,10 @@ const hls = ref(null)
 let checkInterval = null
 
 // Computed
+const hlsStreamName = computed(() => props.stream.stream_key || props.stream.id)
+
 const hlsUrl = computed(() => {
-  return `http://151.241.228.125:8083/hls/${props.stream.id}.m3u8`
+  return `http://151.241.228.125:8083/hls/${hlsStreamName.value}.m3u8`
 })
 
 // Methods
@@ -189,8 +191,8 @@ const destroy = () => {
   stopMonitoring()
 }
 
-// Watch for stream changes
-watch(() => props.stream.id, () => {
+// Watch for stream changes (ключ или id)
+watch(() => hlsStreamName.value, () => {
   destroy()
   // Дадим чуть времени OBS на создание HLS
   setTimeout(() => initializePlayer(), 1500)

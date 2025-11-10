@@ -34,25 +34,54 @@ const { body, validationResult } = require('express-validator');
 router.post('/start', async (req, res) => {
     try {
         const { name, addr } = req.body;
+        const streamKey = (name || '').trim();
         
-        console.log(`🎬 RTMP стрим начат: ${name} от ${addr}`);
+        console.log(`🎬 RTMP стрим начат: ${streamKey || '[empty key]'} от ${addr}`);
         
-        // Обновляем статус трансляции в БД
-        const streamId = parseInt(name);
-        if (streamId && !isNaN(streamId)) {
-            const updateQuery = `
-                UPDATE streams 
-                SET is_active = true, started_at = CURRENT_TIMESTAMP 
-                WHERE id = $1
-            `;
-            await req.app.locals.databaseService.query(updateQuery, [streamId]);
-            console.log(`✅ Статус трансляции ${streamId} обновлен на активный`);
+        if (!streamKey) {
+            return res.status(400).json({
+                success: false,
+                error: 'Пустой ключ трансляции',
+                code: 'RTMP_INVALID_STREAM_KEY'
+            });
+        }
+
+        // Обновляем статус трансляции в БД по stream_key
+        const updateByKeyQuery = `
+            UPDATE streams 
+            SET is_active = true,
+                started_at = CURRENT_TIMESTAMP 
+            WHERE stream_key = $1
+            RETURNING id
+        `;
+        let result = await req.app.locals.databaseService.query(updateByKeyQuery, [streamKey]);
+
+        // Обратная совместимость: поддержка старых ключей с числовым id
+        if (result.rowCount === 0) {
+            const legacyStreamId = parseInt(streamKey, 10);
+            if (!Number.isNaN(legacyStreamId)) {
+                const legacyUpdateQuery = `
+                    UPDATE streams 
+                    SET is_active = true,
+                        started_at = CURRENT_TIMESTAMP 
+                    WHERE id = $1
+                    RETURNING id
+                `;
+                result = await req.app.locals.databaseService.query(legacyUpdateQuery, [legacyStreamId]);
+            }
+        }
+
+        if (result.rowCount > 0) {
+            const updatedId = result.rows[0].id;
+            console.log(`✅ Статус трансляции ${updatedId} обновлен на активный`);
+        } else {
+            console.warn(`⚠️ Не удалось найти трансляцию для ключа "${streamKey}"`);
         }
         
         res.json({ 
             success: true, 
             message: 'RTMP стрим начат',
-            streamName: name 
+            streamName: streamKey 
         });
         
     } catch (error) {
@@ -92,25 +121,52 @@ router.post('/start', async (req, res) => {
 router.post('/stop', async (req, res) => {
     try {
         const { name, addr } = req.body;
+        const streamKey = (name || '').trim();
         
-        console.log(`⏹️ RTMP стрим остановлен: ${name} от ${addr}`);
+        console.log(`⏹️ RTMP стрим остановлен: ${streamKey || '[empty key]'} от ${addr}`);
         
-        // Обновляем статус трансляции в БД
-        const streamId = parseInt(name);
-        if (streamId && !isNaN(streamId)) {
-            const updateQuery = `
-                UPDATE streams 
-                SET is_active = false, ended_at = CURRENT_TIMESTAMP 
-                WHERE id = $1
-            `;
-            await req.app.locals.databaseService.query(updateQuery, [streamId]);
-            console.log(`✅ Статус трансляции ${streamId} обновлен на неактивный`);
+        if (!streamKey) {
+            return res.status(400).json({
+                success: false,
+                error: 'Пустой ключ трансляции',
+                code: 'RTMP_INVALID_STREAM_KEY'
+            });
+        }
+
+        const updateByKeyQuery = `
+            UPDATE streams 
+            SET is_active = false,
+                ended_at = CURRENT_TIMESTAMP 
+            WHERE stream_key = $1
+            RETURNING id
+        `;
+        let result = await req.app.locals.databaseService.query(updateByKeyQuery, [streamKey]);
+
+        if (result.rowCount === 0) {
+            const legacyStreamId = parseInt(streamKey, 10);
+            if (!Number.isNaN(legacyStreamId)) {
+                const legacyUpdateQuery = `
+                    UPDATE streams 
+                    SET is_active = false,
+                        ended_at = CURRENT_TIMESTAMP 
+                    WHERE id = $1
+                    RETURNING id
+                `;
+                result = await req.app.locals.databaseService.query(legacyUpdateQuery, [legacyStreamId]);
+            }
+        }
+
+        if (result.rowCount > 0) {
+            const updatedId = result.rows[0].id;
+            console.log(`✅ Статус трансляции ${updatedId} обновлен на неактивный`);
+        } else {
+            console.warn(`⚠️ Не удалось найти трансляцию для ключа "${streamKey}" при остановке`);
         }
         
         res.json({ 
             success: true, 
             message: 'RTMP стрим остановлен',
-            streamName: name 
+            streamName: streamKey 
         });
         
     } catch (error) {

@@ -267,8 +267,15 @@ class DatabaseService {
     async getActiveStreams() {
         const query = `
             SELECT 
-                s.id, s.title, s.description, s.is_active, s.started_at, s.viewer_count,
-                u.email as operator_email, u.username as operator_username
+                s.id,
+                s.title,
+                s.description,
+                s.is_active,
+                s.started_at,
+                s.viewer_count,
+                s.stream_key,
+                u.email AS operator_email,
+                u.username AS operator_username
             FROM streams s
             JOIN users u ON s.operator_id = u.id
             WHERE s.is_active = true
@@ -281,7 +288,13 @@ class DatabaseService {
     async getActiveStreamsByOperator(operatorId) {
         const query = `
             SELECT 
-                s.id, s.title, s.description, s.is_active, s.started_at, s.viewer_count
+                s.id,
+                s.title,
+                s.description,
+                s.is_active,
+                s.started_at,
+                s.viewer_count,
+                s.stream_key
             FROM streams s
             WHERE s.operator_id = $1 AND s.is_active = true
             ORDER BY s.started_at DESC

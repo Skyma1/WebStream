@@ -34,7 +34,7 @@
           <div class="video-section">
             <div class="video-container">
               <HLSPlayer 
-                :streamName="stream.id"
+                :streamName="stream.stream_key || stream.id"
                 :streamTitle="stream.title"
                 @error="onStreamError"
                 @canplay="onStreamReady"

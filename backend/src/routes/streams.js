@@ -188,9 +188,15 @@ router.get('/:id', requireViewerOrOperator, async (req, res) => {
 
         const query = `
             SELECT 
-                s.id, s.title, s.description, s.is_active, 
-                s.started_at, s.ended_at, s.viewer_count,
-                u.email as operator_email
+                s.id,
+                s.title,
+                s.description,
+                s.is_active,
+                s.started_at,
+                s.ended_at,
+                s.viewer_count,
+                s.stream_key,
+                u.email AS operator_email
             FROM streams s
             JOIN users u ON s.operator_id = u.id
             WHERE s.id = $1

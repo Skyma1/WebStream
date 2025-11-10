@@ -34,8 +34,8 @@
               class="stream-card"
             >
               <div class="stream-preview">
-                <HLSPlayer 
-                  :streamName="stream.id"
+              <HLSPlayer 
+                :streamName="stream.stream_key || stream.id"
                   :streamTitle="stream.title"
                   :showControls="false"
                   class="preview-player"

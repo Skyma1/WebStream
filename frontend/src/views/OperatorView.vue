@@ -55,7 +55,7 @@
                   <label>Сервер:</label>
                   <div class="setting-value">
                     <code>rtmp://151.241.228.125:1935/live</code>
-                    <button @click="copyToClipboard('rtmp://127.0.0.1:1935/live')" class="copy-btn">📋</button>
+                    <button @click="copyToClipboard('rtmp://151.241.228.125:1935/live')" class="copy-btn">📋</button>
                   </div>
                 </div>
                 <div class="setting-item">
@@ -73,7 +73,7 @@
                   <li>Откройте OBS Studio</li>
                   <li>Перейдите в Настройки → Поток</li>
                   <li>Выберите "Пользовательский..." в разделе Сервис</li>
-                  <li>Введите сервер: <code>rtmp://127.0.0.1:1935/live</code></li>
+                  <li>Введите сервер: <code>rtmp://151.241.228.125:1935/live</code></li>
                   <li>Введите ключ потока: <code>{{ currentStream.stream_key || currentStream.id }}</code></li>
                   <li>Нажмите "ОК" и "Начать трансляцию"</li>
                 </ol>
@@ -86,7 +86,7 @@
             <h3>Предварительный просмотр</h3>
             <div class="preview-container">
               <HLSPlayer 
-                :streamName="currentStream.id"
+                :streamName="currentStream.stream_key || currentStream.id"
                 :streamTitle="currentStream.title"
                 @error="onStreamError"
                 @canplay="onStreamReady"
