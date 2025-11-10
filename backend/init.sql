@@ -132,6 +132,5 @@ COMMENT ON COLUMN users.avatar IS 'Аватар пользователя в фо
 ALTER TABLE streams ADD COLUMN IF NOT EXISTS stream_key VARCHAR(255) UNIQUE;
 
 -- Обновляем существующие трансляции, генерируя для них ключи
-UPDATE streams SET stream_key = 'STREAM' || id::text || '_' || extract(epoch from created_at)::text 
+UPDATE streams SET stream_key = 'STREAM' || id::text || '_' || extract(epoch from coalesce(started_at, now()))::text
 WHERE stream_key IS NULL;
-

@@ -25,7 +25,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Установка зависимостей (включая dev для компиляции нативных модулей)
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 # Копирование исходного кода
 COPY . .
