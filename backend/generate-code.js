@@ -55,10 +55,10 @@ async function createSecretCode(role = 'viewer', expiresInDays = 30) {
 
         // Вставляем в БД
         const result = await pool.query(
-            `INSERT INTO secret_codes (code_hash, role, expires_at, created_at)
-             VALUES ($1, $2, NOW() + INTERVAL '${expiresInDays} days', NOW())
+            `INSERT INTO secret_codes (code, code_hash, role, expires_at, created_at)
+             VALUES ($1, $2, $3, NOW() + INTERVAL '${expiresInDays} days', NOW())
              RETURNING id, created_at, expires_at;`,
-            [codeHash, role]
+            [code, codeHash, role]
         );
 
         const row = result.rows[0];
