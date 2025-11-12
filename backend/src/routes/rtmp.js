@@ -5,6 +5,8 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
+const fs = require('fs').promises;
+const path = require('path');
 
 /**
  * @swagger
@@ -159,6 +161,30 @@ router.post('/stop', async (req, res) => {
         if (result.rowCount > 0) {
             const updatedId = result.rows[0].id;
             console.log(`✅ Статус трансляции ${updatedId} обновлен на неактивный`);
+            
+            // Асинхронная очистка старых HLS файлов через 2 секунды
+            // (даёт время последним зрителям получить последние сегменты)
+            setImmediate(async () => {
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    const hlsPath = '/var/www/streams/hls';
+                    const streamDir = path.join(hlsPath, streamKey);
+                    
+                    try {
+                        await fs.stat(streamDir);
+                        // Папка существует, удаляем её
+                        await fs.rm(streamDir, { recursive: true, force: true });
+                        console.log(`🗑️ Удалены HLS файлы для стрима: ${streamDir}`);
+                    } catch (e) {
+                        // Папка не существует или уже удалена
+                        console.log(`ℹ️ HLS папка не найдена или уже удалена: ${streamDir}`);
+                    }
+                } catch (error) {
+                    console.error(`⚠️ Ошибка при удалении HLS файлов:`, error.message);
+                    // Не прерываем выполнение, это некритичная ошибка
+                }
+            });
         } else {
             console.warn(`⚠️ Не удалось найти трансляцию для ключа "${streamKey}" при остановке`);
         }
