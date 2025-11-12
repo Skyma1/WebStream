@@ -42,8 +42,6 @@ export const useStreamStore = defineStore('stream', () => {
       return response.data
     } catch (error) {
       console.error('❌ Ошибка получения трансляций:', error)
-      const toast = useToast()
-      toast.error('Ошибка загрузки трансляций')
       throw error
     } finally {
       isLoading.value = false
@@ -58,8 +56,6 @@ export const useStreamStore = defineStore('stream', () => {
       return response.data
     } catch (error) {
       console.error('❌ Ошибка получения трансляции:', error)
-      const toast = useToast()
-      toast.error('Ошибка загрузки трансляции')
       throw error
     } finally {
       isLoading.value = false
@@ -77,15 +73,9 @@ export const useStreamStore = defineStore('stream', () => {
       // Сохранение активной трансляции в localStorage
       saveActiveStream(response.data)
       
-      const toast = useToast()
-      toast.success('Трансляция создана')
-      
       return response.data
     } catch (error) {
       console.error('❌ Ошибка создания трансляции:', error)
-      const toast = useToast()
-      const errorMessage = error.response?.data?.error || 'Ошибка создания трансляции'
-      toast.error(errorMessage)
       throw error
     } finally {
       isLoading.value = false
@@ -111,15 +101,9 @@ export const useStreamStore = defineStore('stream', () => {
         clearActiveStream()
       }
       
-      const toast = useToast()
-      toast.success('Трансляция завершена')
-      
       return true
     } catch (error) {
       console.error('❌ Ошибка завершения трансляции:', error)
-      const toast = useToast()
-      const errorMessage = error.response?.data?.error || 'Ошибка завершения трансляции'
-      toast.error(errorMessage)
       throw error
     } finally {
       isLoading.value = false
@@ -144,25 +128,19 @@ export const useStreamStore = defineStore('stream', () => {
   }
 
   const addChatMessage = (message) => {
-    console.log('💬 Получено новое сообщение чата:', message)
     chatMessages.value.push(message)
     
     // Ограничение количества сообщений в памяти
     if (chatMessages.value.length > 1000) {
       chatMessages.value = chatMessages.value.slice(-500)
     }
-    
-    console.log('📝 Всего сообщений в чате:', chatMessages.value.length)
   }
 
   const sendChatMessage = (streamId, message) => {
     if (!message || message.trim().length === 0) {
-      const toast = useToast()
-      toast.error('Сообщение не может быть пустым')
       return
     }
 
-    console.log('📤 Отправка сообщения в трансляцию', streamId, ':', message)
     socketService.sendChatMessage(streamId, message)
   }
 
@@ -200,8 +178,19 @@ export const useStreamStore = defineStore('stream', () => {
     isStreaming.value = false
   }
 
-  const updateViewerCount = (count) => {
+  const updateViewerCount = (streamId, count) => {
     viewerCount.value = count
+    
+    // Обновляем счётчик в списке трансляций
+    const streamIndex = streams.value.findIndex(s => s.id === streamId)
+    if (streamIndex !== -1) {
+      streams.value[streamIndex].viewer_count = count
+    }
+    
+    // Обновляем счётчик в текущей трансляции
+    if (currentStream.value && currentStream.value.id === streamId) {
+      currentStream.value.viewer_count = count
+    }
   }
 
   // Действия для присоединения к трансляции

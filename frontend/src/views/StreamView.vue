@@ -181,7 +181,6 @@ const initializeStream = async () => {
     
     // Просто отмечаем как подключенных
     isConnected.value = true
-    toast.success('Подключение к трансляции установлено')
   } catch (error) {
     console.error('❌ Ошибка подключения к трансляции:', error)
     toast.error('Ошибка подключения к трансляции')
@@ -211,7 +210,6 @@ const onStreamError = (error) => {
 const onStreamReady = () => {
   console.log('✅ Стрим готов к воспроизведению')
   isConnected.value = true
-  toast.success('Стрим готов!')
 }
 
 const formatTime = (timestamp) => {

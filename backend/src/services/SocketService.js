@@ -92,6 +92,16 @@ class SocketService {
                     }
                     this.streamRooms.get(streamId).add(socket.id);
 
+                    // Обновление счётчика зрителей в БД
+                    const viewerCount = this.streamRooms.get(streamId).size;
+                    await this.db.query(
+                        'UPDATE streams SET viewer_count = $1 WHERE id = $2',
+                        [viewerCount, streamId]
+                    );
+
+                    // Отправляем обновление счётчика всем участникам комнаты
+                    this.io.to(roomName).emit('viewer_count_update', { streamId, viewerCount });
+
                     // Отправка истории сообщений чата
                     const chatHistory = await this.db.getChatMessages(streamId, 50);
                     // Преобразуем в правильный формат
@@ -138,6 +148,16 @@ class SocketService {
                 // Удаление из списка участников
                 if (this.streamRooms.has(streamId)) {
                     this.streamRooms.get(streamId).delete(socket.id);
+                    
+                    // Обновление счётчика зрителей в БД
+                    const viewerCount = this.streamRooms.get(streamId).size;
+                    this.db.query(
+                        'UPDATE streams SET viewer_count = $1 WHERE id = $2',
+                        [viewerCount, streamId]
+                    ).catch(err => console.error('❌ Ошибка обновления viewer_count:', err));
+
+                    // Отправляем обновление счётчика всем участникам комнаты
+                    this.io.to(roomName).emit('viewer_count_update', { streamId, viewerCount });
                 }
 
                 // Уведомление других участников
@@ -314,6 +334,17 @@ class SocketService {
                         if (socketIds.has(socket.id)) {
                             socketIds.delete(socket.id);
                             const roomName = `stream_${streamId}`;
+                            
+                            // Обновление счётчика зрителей в БД
+                            const viewerCount = socketIds.size;
+                            this.db.query(
+                                'UPDATE streams SET viewer_count = $1 WHERE id = $2',
+                                [viewerCount, streamId]
+                            ).catch(err => console.error('❌ Ошибка обновления viewer_count:', err));
+
+                            // Отправляем обновление счётчика всем участникам комнаты
+                            this.io.to(roomName).emit('viewer_count_update', { streamId, viewerCount });
+                            
                             socket.to(roomName).emit('user_left', {
                                 user: {
                                     id: user.id,

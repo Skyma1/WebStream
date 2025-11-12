@@ -68,13 +68,13 @@
 
         <form @submit.prevent="handleLogin" class="login-form">
           <div class="form-group">
-            <label for="email" class="form-label">Email</label>
+            <label for="username" class="form-label">Имя пользователя</label>
             <input
-              id="email"
-              v-model="form.email"
-              type="email"
+              id="username"
+              v-model="form.username"
+              type="text"
               class="form-input"
-              placeholder="user@example.com"
+              placeholder="username"
               required
               :disabled="isLoading"
             />
@@ -104,6 +104,7 @@
               required
               :disabled="isLoading"
             />
+            <p class="form-hint">Секретный код для дополнительной безопасности</p>
           </div>
 
           <button
@@ -141,7 +142,7 @@ const toast = useToast()
 
 // Состояние формы
 const form = ref({
-  email: '',
+  username: '',
   password: '',
   secretCode: ''
 })
@@ -158,10 +159,7 @@ const isFirstUser = ref(false)
 
 // Валидация формы
 const isFormValid = computed(() => {
-  return form.value.email && 
-         form.value.password && 
-         form.value.secretCode &&
-         form.value.email.includes('@')
+  return form.value.username && form.value.password && form.value.secretCode
 })
 
 // Валидация формы администратора
@@ -197,7 +195,6 @@ const handleCreateFirstAdmin = async () => {
       localStorage.setItem('token', response.data.token)
       authStore.setUser(response.data.user)
       
-      toast.success('🎉 Администратор создан! Добро пожаловать!')
       router.push('/dashboard')
     }
   } catch (error) {
@@ -219,8 +216,6 @@ const handleLogin = async () => {
     const result = await authStore.login(form.value)
     
     if (result.success) {
-      console.log('✅ Вход успешен, перенаправляем на:', route.query.redirect || '/dashboard')
-      toast.success(`Добро пожаловать, ${result.user.email}!`)
       // Перенаправление на нужную страницу
       const redirectTo = route.query.redirect || '/dashboard'
       console.log('🔄 Пытаемся перейти на:', redirectTo)
@@ -437,6 +432,12 @@ onMounted(() => {
 
 .w-full {
   width: 100%;
+}
+
+.form-hint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 @media (max-width: 480px) {

@@ -34,13 +34,15 @@ class WebStreamApp {
     constructor() {
         this.app = express();
         this.server = http.createServer(this.app);
+        const publicIP = process.env.PUBLIC_IP || 'localhost';
         this.io = socketIo(this.server, {
             cors: {
                 origin: [
                     process.env.FRONTEND_URL || "http://localhost:8080",
                     "http://frontend:8080",
-                    "http://151.241.228.125:8081",
-                    "http://151.241.228.125"
+                    `http://${publicIP}:8081`,
+                    `http://${publicIP}:8080`,
+                    `http://${publicIP}`
                 ],
                 methods: ["GET", "POST"],
                 credentials: true
@@ -75,12 +77,13 @@ class WebStreamApp {
         // }));
 
         // CORS
+        const publicIP = process.env.PUBLIC_IP || 'localhost';
         const allowedOrigins = [
             process.env.FRONTEND_URL || "http://localhost:8080",
             "http://frontend:8080",
-            "http://151.241.228.125:8081",
-            "http://151.241.228.125:8080",
-            "http://151.241.228.125",
+            `http://${publicIP}:8081`,
+            `http://${publicIP}:8080`,
+            `http://${publicIP}`,
             "http://localhost:8081",
             "http://localhost:8080"
         ];

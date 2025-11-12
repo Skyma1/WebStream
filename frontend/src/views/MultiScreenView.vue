@@ -85,6 +85,8 @@ const setActiveAudio = (idx) => {
   activeAudioIndex.value = idx
 }
 
+const swapIndex = ref(null)
+
 const startSwap = (idx) => {
   if (swapIndex.value === null) {
     swapIndex.value = idx
@@ -99,8 +101,6 @@ const startSwap = (idx) => {
     swapIndex.value = null
   }
 }
-
-const swapIndex = ref(null)
 
 // Replace
 const showReplace = ref(false)

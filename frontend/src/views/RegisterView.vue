@@ -9,16 +9,20 @@
 
         <form @submit.prevent="handleRegister" class="register-form">
           <div class="form-group">
-            <label for="email" class="form-label">Email (Логин)</label>
+            <label for="username" class="form-label">Имя пользователя</label>
             <input
-              id="email"
-              v-model="form.email"
-              type="email"
+              id="username"
+              v-model="form.username"
+              type="text"
               class="form-input"
-              placeholder="user@example.com"
+              placeholder="username"
               required
               :disabled="isLoading"
+              minlength="3"
+              maxlength="20"
+              pattern="[a-zA-Z0-9_]+"
             />
+            <div class="form-help">От 3 до 20 символов (только буквы, цифры и подчеркивания)</div>
           </div>
 
           <div class="form-group">
@@ -97,7 +101,7 @@ const authStore = useAuthStore()
 
 // Состояние формы
 const form = ref({
-  email: '',
+  username: '',
   password: '',
   confirmPassword: '',
   secretCode: ''
@@ -107,8 +111,11 @@ const isLoading = ref(false)
 
 // Валидация формы
 const isFormValid = computed(() => {
-  return form.value.email && 
-         form.value.email.includes('@') &&
+  const usernameValid = form.value.username && 
+                        form.value.username.length >= 3 && 
+                        form.value.username.length <= 20 &&
+                        /^[a-zA-Z0-9_]+$/.test(form.value.username)
+  return usernameValid &&
          form.value.password && 
          form.value.password.length >= 6 &&
          form.value.confirmPassword &&
@@ -124,7 +131,7 @@ const handleRegister = async () => {
 
   try {
     const result = await authStore.register({
-      email: form.value.email,
+      username: form.value.username,
       password: form.value.password,
       secretCode: form.value.secretCode
     })
@@ -144,7 +151,7 @@ const handleRegister = async () => {
 onMounted(() => {
   // Заполнение демо-данных для тестирования
   if (import.meta.env.DEV) {
-    form.value.email = 'km.shamova@gmail.com'
+    form.value.username = 'testuser'
     form.value.password = 'password123'
     form.value.confirmPassword = 'password123'
     form.value.secretCode = 'OPERATOR25'

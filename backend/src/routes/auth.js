@@ -255,10 +255,11 @@ router.post('/create-first-admin', [
  *         description: Пользователь с таким email уже существует
  */
 router.post('/register', [
-    body('email')
-        .isEmail()
-        .normalizeEmail()
-        .withMessage('Введите корректный email адрес'),
+    body('username')
+        .isLength({ min: 3, max: 20 })
+        .withMessage('Имя пользователя должно быть от 3 до 20 символов')
+        .matches(/^[a-zA-Z0-9_]+$/)
+        .withMessage('Имя пользователя может содержать только буквы, цифры и подчеркивания'),
     body('password')
         .isLength({ min: 6 })
         .withMessage('Пароль должен содержать минимум 6 символов'),
@@ -277,13 +278,13 @@ router.post('/register', [
             });
         }
 
-        const { email, password, secretCode } = req.body;
+        const { username, password, secretCode } = req.body;
 
-        // Проверка существования пользователя
-        const existingUser = await req.app.locals.databaseService.findUserByEmail(email);
+        // Проверка существования пользователя по username
+        const existingUser = await req.app.locals.databaseService.findUserByUsername(username);
         if (existingUser) {
             return res.status(409).json({
-                error: 'Пользователь с таким email уже существует',
+                error: 'Пользователь с таким именем уже существует',
                 code: 'USER_EXISTS'
             });
         }
@@ -306,7 +307,7 @@ router.post('/register', [
 
         // Создание пользователя
         const user = await req.app.locals.databaseService.createUser({
-            email,
+            username,
             password,
             role: secretCodeData.role
         });
@@ -316,7 +317,7 @@ router.post('/register', [
 
         // Генерация JWT токена
         const token = jwt.sign(
-            { userId: user.id, email: user.email, role: user.role },
+            { userId: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
@@ -325,13 +326,14 @@ router.post('/register', [
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 часа
         await req.app.locals.databaseService.createUserSession(user.id, token, expiresAt);
 
-        console.log(`✅ Новый пользователь зарегистрирован: ${email} (${user.role})`);
+        console.log(`✅ Новый пользователь зарегистрирован: ${username} (${user.role})`);
 
         res.status(201).json({
             success: true,
             token,
             user: {
                 id: user.id,
+                username: user.username,
                 email: user.email,
                 role: user.role,
                 created_at: user.created_at
@@ -383,13 +385,15 @@ router.post('/register', [
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/login', [
-    body('email')
-        .isEmail()
-        .normalizeEmail()
-        .withMessage('Введите корректный email адрес'),
+    body('username')
+        .notEmpty()
+        .withMessage('Имя пользователя обязательно'),
     body('password')
         .notEmpty()
-        .withMessage('Пароль обязателен')
+        .withMessage('Пароль обязателен'),
+    body('secretCode')
+        .notEmpty()
+        .withMessage('Секретный код обязателен')
 ], async (req, res) => {
     try {
         // Проверка валидации
@@ -402,13 +406,22 @@ router.post('/login', [
             });
         }
 
-        const { email, password } = req.body;
+        const { username, password, secretCode } = req.body;
+
+        // Проверка секретного кода (для входа - не проверяем is_used)
+        const secretCodeData = await req.app.locals.databaseService.validateSecretCodeForLogin(secretCode);
+        if (!secretCodeData) {
+            return res.status(401).json({
+                error: 'Неверный секретный код или истёк срок действия',
+                code: 'INVALID_SECRET_CODE'
+            });
+        }
 
         // Поиск пользователя
-        const user = await req.app.locals.databaseService.findUserByEmail(email);
+        const user = await req.app.locals.databaseService.findUserByUsername(username);
         if (!user) {
             return res.status(401).json({
-                error: 'Неверный email или пароль',
+                error: 'Неверное имя пользователя или пароль',
                 code: 'INVALID_CREDENTIALS'
             });
         }
@@ -417,14 +430,14 @@ router.post('/login', [
         const isPasswordValid = await req.app.locals.databaseService.verifyPassword(password, user.password_hash);
         if (!isPasswordValid) {
             return res.status(401).json({
-                error: 'Неверный email или пароль',
+                error: 'Неверное имя пользователя или пароль',
                 code: 'INVALID_CREDENTIALS'
             });
         }
 
         // Генерация JWT токена
         const token = jwt.sign(
-            { userId: user.id, email: user.email, role: user.role },
+            { userId: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
@@ -433,13 +446,14 @@ router.post('/login', [
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 часа
         await req.app.locals.databaseService.createUserSession(user.id, token, expiresAt);
 
-        console.log(`✅ Пользователь вошел в систему: ${email} (${user.role})`);
+        console.log(`✅ Пользователь вошел в систему: ${username} (${user.role})`);
 
         res.json({
             success: true,
             token,
             user: {
                 id: user.id,
+                username: user.username,
                 email: user.email,
                 role: user.role,
                 created_at: user.created_at

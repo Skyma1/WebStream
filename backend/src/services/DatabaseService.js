@@ -81,16 +81,16 @@ class DatabaseService {
      * Создание нового пользователя
      */
     async createUser(userData) {
-        const { email, password, role } = userData;
+        const { username, password, role, email } = userData;
         const passwordHash = await bcrypt.hash(password, 10);
         
         const query = `
-            INSERT INTO users (email, password_hash, role)
-            VALUES ($1, $2, $3)
-            RETURNING id, email, role, created_at
+            INSERT INTO users (username, password_hash, role, email)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id, username, email, role, created_at
         `;
         
-        const result = await this.query(query, [email, passwordHash, role]);
+        const result = await this.query(query, [username, passwordHash, role, email || null]);
         return result.rows[0];
     }
 
@@ -161,10 +161,28 @@ class DatabaseService {
     }
 
     /**
-     * Поиск секретного кода
+     * Поиск секретного кода (для регистрации - проверяет is_used)
      */
     async findSecretCode(code) {
-        const query = 'SELECT * FROM secret_codes WHERE code = $1';
+        const query = `
+            SELECT * FROM secret_codes 
+            WHERE code = $1 
+            AND is_used = false 
+            AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+        `;
+        const result = await this.query(query, [code]);
+        return result.rows[0] || null;
+    }
+
+    /**
+     * Проверка секретного кода для входа (не проверяет is_used - можно использовать многократно)
+     */
+    async validateSecretCodeForLogin(code) {
+        const query = `
+            SELECT * FROM secret_codes 
+            WHERE code = $1 
+            AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+        `;
         const result = await this.query(query, [code]);
         return result.rows[0] || null;
     }

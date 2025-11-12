@@ -68,7 +68,17 @@ const router = express.Router();
 router.get('/', requireViewerOrOperator, async (req, res) => {
     try {
         const streams = await req.app.locals.databaseService.getActiveStreams();
-        res.json(streams);
+        
+        // Скрываем stream_key от зрителей
+        const filteredStreams = streams.map(stream => {
+            if (req.user.role !== 'operator' && req.user.role !== 'admin') {
+                const { stream_key, ...streamWithoutKey } = stream;
+                return streamWithoutKey;
+            }
+            return stream;
+        });
+        
+        res.json(filteredStreams);
 
     } catch (error) {
         console.error('❌ Ошибка получения трансляций:', error);
@@ -210,7 +220,14 @@ router.get('/:id', requireViewerOrOperator, async (req, res) => {
             });
         }
 
-        res.json(result.rows[0]);
+        const stream = result.rows[0];
+        
+        // Скрываем stream_key от зрителей (только оператор и админ могут видеть ключ)
+        if (req.user.role !== 'operator' && req.user.role !== 'admin') {
+            delete stream.stream_key;
+        }
+
+        res.json(stream);
 
     } catch (error) {
         console.error('❌ Ошибка получения трансляции:', error);

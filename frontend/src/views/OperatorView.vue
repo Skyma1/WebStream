@@ -54,8 +54,8 @@
                 <div class="setting-item">
                   <label>Сервер:</label>
                   <div class="setting-value">
-                    <code>rtmp://151.241.228.125:1935/live</code>
-                    <button @click="copyToClipboard('rtmp://151.241.228.125:1935/live')" class="copy-btn">📋</button>
+                    <code>{{ rtmpServerUrl }}</code>
+                    <button @click="copyToClipboard(rtmpServerUrl)" class="copy-btn">📋</button>
                   </div>
                 </div>
                 <div class="setting-item">
@@ -73,7 +73,7 @@
                   <li>Откройте OBS Studio</li>
                   <li>Перейдите в Настройки → Поток</li>
                   <li>Выберите "Пользовательский..." в разделе Сервис</li>
-                  <li>Введите сервер: <code>rtmp://151.241.228.125:1935/live</code></li>
+                  <li>Введите сервер: <code>{{ rtmpServerUrl }}</code></li>
                   <li>Введите ключ потока: <code>{{ currentStream.stream_key || currentStream.id }}</code></li>
                   <li>Нажмите "ОК" и "Начать трансляцию"</li>
                 </ol>
@@ -157,24 +157,20 @@ const streamForm = ref({
 const newChatMessage = ref('')
 const chatMessagesRef = ref(null)
 
+// RTMP сервер URL из env
+const rtmpServerUrl = computed(() => {
+  return import.meta.env.VITE_RTMP_URL || 'rtmp://localhost:1935/live'
+})
+
 // Используем сообщения из store
 const chatMessages = computed(() => {
-  console.log('🔍 Computed chatMessages вызван')
-  console.log('📊 currentStream.value:', currentStream.value)
-  console.log('📊 streamStore.chatMessages:', streamStore.chatMessages)
-  
   if (!currentStream.value) {
-    console.log('❌ Нет currentStream, возвращаем пустой массив')
     return []
   }
   
-  const filtered = streamStore.chatMessages.filter(msg => {
-    console.log('🔍 Проверяем сообщение:', msg, 'stream_id:', msg.stream_id, 'currentStream.id:', currentStream.value.id)
+  return streamStore.chatMessages.filter(msg => {
     return msg.stream_id === currentStream.value.id
   })
-  
-  console.log('✅ Отфильтрованные сообщения:', filtered)
-  return filtered
 })
 
 // Обработчики
@@ -203,8 +199,6 @@ const createStream = async () => {
     
     // Присоединение к чату трансляции
     streamStore.joinStream(stream.id)
-    
-    toast.success('Трансляция создана! Настройте OBS Studio для начала стриминга.')
   } catch (error) {
     console.error('❌ Ошибка создания трансляции:', error)
     toast.error('Ошибка создания трансляции')
@@ -219,7 +213,6 @@ const endStream = async () => {
   try {
     isLoading.value = true
     await streamStore.endStream(currentStream.value.id)
-    toast.info('Трансляция завершена')
     
     streamStore.clearCurrentStream()
     currentStream.value = null
@@ -231,7 +224,6 @@ const endStream = async () => {
     if (error.response?.status === 400) {
       const errorMessage = error.response?.data?.error || 'Ошибка завершения трансляции'
       if (errorMessage.includes('уже завершена')) {
-        toast.warning('Трансляция уже завершена')
         // Очищаем состояние даже если трансляция уже завершена
         streamStore.clearCurrentStream()
         currentStream.value = null
@@ -257,7 +249,7 @@ const sendChatMessage = () => {
 const copyToClipboard = async (text) => {
   try {
     await navigator.clipboard.writeText(text)
-    toast.success('Скопировано в буфер обмена')
+    toast.success('Скопировано')
   } catch (error) {
     console.error('❌ Ошибка копирования:', error)
     toast.error('Ошибка копирования')
@@ -266,12 +258,10 @@ const copyToClipboard = async (text) => {
 
 const onStreamError = (error) => {
   console.error('❌ Ошибка стрима:', error)
-  toast.error('Ошибка воспроизведения стрима')
 }
 
 const onStreamReady = () => {
-  console.log('✅ Стрим готов к воспроизведению')
-  toast.success('Стрим готов!')
+  // Стрим готов к воспроизведению
 }
 
 const scrollChatToBottom = () => {

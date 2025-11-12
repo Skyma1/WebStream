@@ -25,7 +25,6 @@ class SocketService {
   async connect(token) {
     try {
       if (this.socket && this.isConnected) {
-        console.log('🔌 WebSocket уже подключен')
         return
       }
 
@@ -41,14 +40,12 @@ class SocketService {
       
       return new Promise((resolve, reject) => {
         this.socket.on('connect', () => {
-          console.log('✅ WebSocket подключен, отправляем аутентификацию...')
           // Отправляем событие аутентификации
           this.socket.emit('authenticate', { token: token })
         })
 
         this.socket.on('authenticated', (data) => {
           if (data.success) {
-            console.log('✅ WebSocket аутентификация успешна:', data.user.email)
             this.isConnected = true
             this.reconnectAttempts = 0
             this.startHeartbeat() // Запускаем heartbeat
@@ -85,14 +82,12 @@ class SocketService {
 
     // Подключение
     this.socket.on('connect', () => {
-      console.log('🔌 WebSocket подключен')
       this.isConnected = true
       this.reconnectAttempts = 0
     })
 
     // Отключение
     this.socket.on('disconnect', (reason) => {
-      console.log('🔌 WebSocket отключен:', reason)
       this.isConnected = false
       
       if (reason === 'io server disconnect') {
@@ -110,16 +105,13 @@ class SocketService {
 
     // Аутентификация
     this.socket.on('authenticated', (data) => {
-      if (data.success) {
-        console.log('✅ WebSocket аутентификация успешна')
-      } else {
+      if (!data.success) {
         console.error('❌ Ошибка аутентификации WebSocket:', data.error)
       }
     })
 
     // Уведомления
     this.socket.on('notification', (data) => {
-      console.log('📢 Уведомление:', data)
       // Здесь можно добавить обработку уведомлений
     })
 
@@ -130,36 +122,36 @@ class SocketService {
     })
 
     this.socket.on('new_chat_message', (message) => {
-      console.log('📨 Получено новое сообщение чата:', message)
       const streamStore = useStreamStore()
       streamStore.addChatMessage(message)
     })
 
     this.socket.on('user_joined', (data) => {
-      console.log('👤 Пользователь присоединился:', data)
       const streamStore = useStreamStore()
       streamStore.addUserToStream(data.user)
     })
 
     this.socket.on('user_left', (data) => {
-      console.log('👋 Пользователь покинул:', data)
       const streamStore = useStreamStore()
       streamStore.removeUserFromStream(data.user.id)
     })
 
+    // Обновление счётчика зрителей
+    this.socket.on('viewer_count_update', (data) => {
+      const streamStore = useStreamStore()
+      streamStore.updateViewerCount(data.streamId, data.viewerCount)
+    })
+
     // WebRTC события
     this.socket.on('webrtc_offer', (data) => {
-      console.log('📡 WebRTC Offer получен:', data)
       // Обработка WebRTC offer
     })
 
     this.socket.on('webrtc_answer', (data) => {
-      console.log('📡 WebRTC Answer получен:', data)
       // Обработка WebRTC answer
     })
 
     this.socket.on('webrtc_ice_candidate', (data) => {
-      console.log('📡 WebRTC ICE Candidate получен:', data)
       // Обработка WebRTC ICE candidate
     })
 
@@ -191,7 +183,6 @@ class SocketService {
     
     this.heartbeatInterval = setInterval(() => {
       if (!this.isConnected || !this.socket) {
-        console.warn('⚠️ WebSocket не подключен, запускаем переподключение')
         this.handleReconnect()
         return
       }

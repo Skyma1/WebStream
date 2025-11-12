@@ -74,7 +74,8 @@ const isLive = ref(false)
 
 // Computed
 const hlsUrl = computed(() => {
-  return `http://151.241.228.125:8083/hls/${props.streamName}.m3u8`
+  const hlsBaseUrl = import.meta.env.VITE_HLS_URL || 'http://localhost:8083'
+  return `${hlsBaseUrl}/hls/${props.streamName}.m3u8`
 })
 
 // Methods
@@ -82,7 +83,6 @@ const checkHLSAvailability = async () => {
   try {
     const response = await fetch(hlsUrl.value, { method: 'HEAD' })
     if (response.ok && !isLive.value) {
-      console.log('✅ HLS файл доступен, перезапускаем плеер')
       initHLS()
     }
   } catch (error) {
@@ -148,7 +148,6 @@ const initHLS = () => {
     hlsInstance.value.attachMedia(videoRef.value)
     
     hlsInstance.value.on(Hls.Events.MANIFEST_PARSED, () => {
-      console.log('✅ HLS манифест загружен, начинаем воспроизведение')
       isLoading.value = false
       isLive.value = true
       hasError.value = false
@@ -156,30 +155,23 @@ const initHLS = () => {
     })
     
     hlsInstance.value.on(Hls.Events.ERROR, (event, data) => {
-      console.log('🔄 HLS событие:', data.type, data.details)
-      
       if (data.fatal) {
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
             if (data.details === 'manifestLoadError') {
-              console.log('⏳ Ожидание появления трансляции...')
               // Не показываем ошибку, просто ждем
               isLoading.value = true
               hasError.value = false
               isLive.value = false
               // Запускаем мониторинг доступности HLS файла
               startHLSMonitoring()
-            } else {
-              console.log('🔄 Попытка восстановления после сетевой ошибки...')
             }
             // Полностью пересоздаем HLS экземпляр после фатальной ошибки
             setTimeout(() => {
-              console.log('🔄 Пересоздание HLS плеера...')
               initHLS()
-            }, 3000) // Уменьшаем до 3 секунд для более быстрого реагирования
+            }, 3000)
             break
           case Hls.ErrorTypes.MEDIA_ERROR:
-            console.log('🔄 Попытка восстановления после ошибки медиа...')
             // Даем больше времени перед восстановлением
             setTimeout(() => {
               if (hlsInstance.value) {
@@ -188,24 +180,17 @@ const initHLS = () => {
             }, 3000)
             break
           default:
-            console.log('🔄 Перезапуск HLS плеера...')
             // Даем больше времени перед полным перезапуском
             setTimeout(() => {
               initHLS()
-            }, 8000) // Увеличиваем до 8 секунд
+            }, 8000)
             break
         }
-      } else {
-        // Для нефатальных ошибок просто логируем
-        console.log('⚠️ Нефатальная HLS ошибка, продолжаем...')
       }
     })
-    
-    console.log('✅ HLS плеер инициализирован с hls.js:', hlsUrl.value)
   } else if (videoRef.value.canPlayType('application/vnd.apple.mpegurl')) {
     // Нативная поддержка HLS (Safari)
     videoRef.value.src = hlsUrl.value
-    console.log('✅ HLS URL установлен (нативная поддержка):', hlsUrl.value)
   } else {
     // Браузер не поддерживает HLS
     handleError({ type: 'unsupported' })
@@ -223,7 +208,6 @@ const handleError = (error) => {
   } else {
     // Для сетевых ошибок и ошибок медиа не показываем ошибку,
     // а продолжаем попытки подключения
-    console.log('🔄 Продолжаем попытки подключения...')
     isLoading.value = true
     hasError.value = false
     isLive.value = false
