@@ -214,11 +214,10 @@ class WebStreamApp {
                 
                 // Проверяем, что путь не выходит за границы директории (безопасность)
                 try {
-                    const basePath = path.join('/var/www/streams/hls', streamName);
-                    const realPath = fs.realpathSync(basePath).normalize();
+                    const realBasePath = fs.realpathSync(hlsBasePath).normalize();
                     const requestedPath = fs.realpathSync(filePath).normalize();
                     
-                    if (!requestedPath.startsWith(realPath)) {
+                    if (!requestedPath.startsWith(realBasePath)) {
                         console.warn(`⚠️ Попытка доступа за границы директории: ${requestedPath}`);
                         return res.status(403).json({ error: 'Forbidden' });
                     }
