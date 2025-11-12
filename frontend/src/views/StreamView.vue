@@ -45,7 +45,7 @@
                 :title="'Просмотр списка зрителей'"
               >
                 <span class="viewers-icon">👥</span>
-                <span class="viewers-count">{{ stream.viewer_count || 0 }}</span>
+                <span class="viewers-count">{{ currentViewerCount }}</span>
               </button>
             </div>
 
@@ -154,7 +154,6 @@ const props = defineProps({
 const stream = ref(null)
 const isLoading = ref(false)
 const isConnected = ref(false)
-const viewerCount = ref(0)
 const newMessage = ref('')
 // remoteVideo больше не нужен для HLS
 
@@ -162,6 +161,23 @@ const newMessage = ref('')
 const canViewViewers = computed(() => {
   return authStore.user && (authStore.user.role === 'operator' || authStore.user.role === 'admin')
 })
+
+const currentViewerCount = computed(() => {
+  if (streamStore.viewerCount) {
+    return streamStore.viewerCount
+  }
+
+  if (stream.value?.viewer_count !== undefined && stream.value?.viewer_count !== null) {
+    return stream.value.viewer_count
+  }
+
+  if (streamStore.currentStream?.viewer_count !== undefined && streamStore.currentStream?.viewer_count !== null) {
+    return streamStore.currentStream.viewer_count
+  }
+
+  return 0
+})
+
 const chatMessagesRef = ref(null)
 
 // Используем сообщения из store
@@ -711,14 +727,14 @@ onUnmounted(async () => {
 /* Стили для заголовка трансляции и кнопки зрителей */
 .stream-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid #334155;
+  padding: 1rem 1.25rem;
+  background: rgba(17, 17, 17, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.5);
 }
 
 .stream-title-block {
@@ -729,8 +745,8 @@ onUnmounted(async () => {
 .stream-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
-  margin: 0 0 0.25rem 0;
+  color: #ffffff;
+  margin: 0 0 0.35rem 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -738,36 +754,42 @@ onUnmounted(async () => {
 
 .stream-description {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.65);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-clamp: 2;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
 .viewers-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, rgba(83, 252, 24, 0.15) 0%, rgba(0, 212, 170, 0.15) 100%);
-  border: 1px solid rgba(83, 252, 24, 0.3);
-  border-radius: 12px;
-  color: #53fc18;
+  gap: 0.45rem;
+  padding: 0.65rem 1.15rem;
+  background: rgba(255, 0, 0, 0.16);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  border-radius: 10px;
+  color: #ff5a5a;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  flex-shrink: 0;
+  transition: all 0.2s ease;
+  letter-spacing: 0.01em;
 }
 
 .viewers-button:hover {
-  background: linear-gradient(135deg, rgba(83, 252, 24, 0.25) 0%, rgba(0, 212, 170, 0.25) 100%);
-  border-color: #53fc18;
+  background: rgba(255, 0, 0, 0.24);
+  border-color: #ff5a5a;
+  box-shadow: 0 10px 22px rgba(255, 0, 0, 0.25);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(83, 252, 24, 0.3);
+}
+
+.viewers-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.25);
 }
 
 .viewers-button:active {
@@ -775,13 +797,15 @@ onUnmounted(async () => {
 }
 
 .viewers-icon {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
 }
 
 .viewers-count {
-  font-size: 1.125rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  min-width: 20px;
+  min-width: 26px;
   text-align: center;
 }
 </style>

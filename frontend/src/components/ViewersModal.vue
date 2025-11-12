@@ -174,15 +174,15 @@ watch(() => props.show, (newVal) => {
 }
 
 .modal-container {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid #334155;
+  background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
   max-width: 600px;
   width: 100%;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.6);
   animation: modalSlideIn 0.3s ease-out;
 }
 
@@ -199,7 +199,7 @@ watch(() => props.show, (newVal) => {
 
 .modal-header {
   padding: 1.5rem;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -224,8 +224,8 @@ watch(() => props.show, (newVal) => {
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: rgba(255, 0, 0, 0.18);
+  color: #ffffff;
 }
 
 .modal-body {
@@ -245,8 +245,8 @@ watch(() => props.show, (newVal) => {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(83, 252, 24, 0.3);
-  border-top: 3px solid #53fc18;
+  border: 3px solid rgba(255, 0, 0, 0.25);
+  border-top: 3px solid #ff0000;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -264,13 +264,13 @@ watch(() => props.show, (newVal) => {
 }
 
 .viewers-count {
-  background: rgba(83, 252, 24, 0.1);
-  border: 1px solid rgba(83, 252, 24, 0.3);
+  background: rgba(255, 0, 0, 0.12);
+  border: 1px solid rgba(255, 0, 0, 0.35);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
   text-align: center;
-  color: #53fc18;
+  color: #ff5656;
   font-size: 0.875rem;
 }
 
@@ -286,8 +286,8 @@ watch(() => props.show, (newVal) => {
 }
 
 .viewer-item {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid #334155;
+  background: rgba(26, 26, 26, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 10px;
   padding: 1rem;
   display: flex;
@@ -297,8 +297,8 @@ watch(() => props.show, (newVal) => {
 }
 
 .viewer-item:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: #53fc18;
+  background: rgba(32, 32, 32, 0.95);
+  border-color: rgba(255, 0, 0, 0.4);
   transform: translateX(4px);
 }
 
@@ -306,13 +306,13 @@ watch(() => props.show, (newVal) => {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #53fc18 0%, #00d4aa 100%);
+  background: linear-gradient(140deg, #ff2a2a 0%, #ff5e5e 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 1.125rem;
-  color: #000;
+  color: #111;
   flex-shrink: 0;
 }
 
@@ -371,7 +371,7 @@ watch(() => props.show, (newVal) => {
 
 .modal-footer {
   padding: 1.5rem;
-  border-top: 1px solid #334155;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
@@ -379,22 +379,24 @@ watch(() => props.show, (newVal) => {
 
 .btn {
   padding: 0.75rem 1.5rem;
-  border: none;
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  border: 1px solid transparent;
 }
 
 .btn-secondary {
-  background: rgba(51, 65, 85, 0.8);
-  color: white;
-  border: 1px solid #475569;
+  background: rgba(45, 45, 45, 0.92);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .btn-secondary:hover {
-  background: rgba(71, 85, 105, 0.8);
+  background: rgba(60, 60, 60, 0.95);
+  border-color: rgba(255, 0, 0, 0.4);
+  color: #ff6666;
   transform: translateY(-1px);
 }
 
@@ -415,17 +417,17 @@ watch(() => props.show, (newVal) => {
 }
 
 .modal-body::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(32, 32, 32, 0.7);
   border-radius: 4px;
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-  background: rgba(83, 252, 24, 0.3);
+  background: rgba(255, 0, 0, 0.32);
   border-radius: 4px;
 }
 
 .modal-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(83, 252, 24, 0.5);
+  background: rgba(255, 0, 0, 0.45);
 }
 
 @media (max-width: 640px) {

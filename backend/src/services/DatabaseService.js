@@ -303,6 +303,33 @@ class DatabaseService {
         return result.rows;
     }
 
+    /**
+     * Получение трансляции по ID
+     */
+    async getStreamById(streamId) {
+        const query = `
+            SELECT 
+                s.id,
+                s.title,
+                s.description,
+                s.is_active,
+                s.started_at,
+                s.ended_at,
+                s.viewer_count,
+                s.operator_id,
+                s.stream_key,
+                u.username AS operator_username,
+                u.email AS operator_email
+            FROM streams s
+            JOIN users u ON s.operator_id = u.id
+            WHERE s.id = $1
+            LIMIT 1
+        `;
+
+        const result = await this.query(query, [streamId]);
+        return result.rows[0] || null;
+    }
+
     async getActiveStreamsByOperator(operatorId) {
         const query = `
             SELECT 
