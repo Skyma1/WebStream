@@ -66,7 +66,7 @@ const hls = ref(null)
 let checkInterval = null
 
 // Computed
-const hlsStreamName = computed(() => props.stream.stream_key || props.stream.id)
+const hlsStreamName = computed(() => String(props.stream.id))
 
 const hlsUrl = computed(() => {
   const hlsBaseUrl = import.meta.env.VITE_HLS_URL || 'http://localhost:8083'

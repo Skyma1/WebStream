@@ -151,14 +151,28 @@ class WebStreamApp {
         this.app.use('/api/users', authMiddleware.requireAuth, userRoutes);
 
         // Проксирование HLS потоков от nginx
-        this.app.get('/hls/:streamName/:filename', async (req, res) => {
-            const { streamName, filename } = req.params;
-            const nginxUrl = `http://nginx:80/hls/${streamName}/${filename}`;
+        // Поддержка двух форматов: /hls/:streamId/:filename и /hls/:streamKey/:filename
+        this.app.get('/hls/:streamIdentifier/:filename', async (req, res) => {
+            const { streamIdentifier, filename } = req.params;
+            let streamName = streamIdentifier;
             
             try {
+                // Проверяем, является ли streamIdentifier числовым ID
+                const streamId = parseInt(streamIdentifier);
+                if (!isNaN(streamId)) {
+                    // Получаем stream_key по ID для безопасности
+                    const stream = await this.databaseService.getStreamById(streamId);
+                    if (!stream || !stream.stream_key) {
+                        return res.status(404).json({ error: 'Stream not found' });
+                    }
+                    streamName = stream.stream_key;
+                }
+                
+                const nginxUrl = `http://nginx:80/hls/${streamName}/${filename}`;
+                
                 const response = await fetch(nginxUrl);
                 if (!response.ok) {
-                    return res.status(404).json({ error: 'Stream not found' });
+                    return res.status(404).json({ error: 'HLS stream not found' });
                 }
                 
                 // Устанавливаем правильные заголовки для HLS

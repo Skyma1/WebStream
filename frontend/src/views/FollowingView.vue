@@ -35,7 +35,7 @@
             >
               <div class="stream-preview">
               <HLSPlayer 
-                :streamName="stream.stream_key || stream.id"
+                :streamName="String(stream.id)"
                   :streamTitle="stream.title"
                   :showControls="false"
                   class="preview-player"

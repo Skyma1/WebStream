@@ -86,7 +86,7 @@
             <h3>Предварительный просмотр</h3>
             <div class="preview-container">
               <HLSPlayer 
-                :streamName="currentStream.stream_key || currentStream.id"
+                :streamName="String(currentStream.id)"
                 :streamTitle="currentStream.title"
                 @error="onStreamError"
                 @canplay="onStreamReady"

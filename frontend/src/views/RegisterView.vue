@@ -15,14 +15,13 @@
               v-model="form.username"
               type="text"
               class="form-input"
-              placeholder="username"
+              placeholder="имя_пользователя"
               required
               :disabled="isLoading"
               minlength="3"
               maxlength="20"
-              pattern="[a-zA-Z0-9_]+"
             />
-            <div class="form-help">От 3 до 20 символов (только буквы, цифры и подчеркивания)</div>
+            <div class="form-help">От 3 до 20 символов (буквы, цифры и подчеркивания)</div>
           </div>
 
           <div class="form-group">
@@ -114,7 +113,7 @@ const isFormValid = computed(() => {
   const usernameValid = form.value.username && 
                         form.value.username.length >= 3 && 
                         form.value.username.length <= 20 &&
-                        /^[a-zA-Z0-9_]+$/.test(form.value.username)
+                        /^[a-zA-Zа-яА-ЯёЁ0-9_]+$/.test(form.value.username)
   return usernameValid &&
          form.value.password && 
          form.value.password.length >= 6 &&

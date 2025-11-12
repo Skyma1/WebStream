@@ -74,7 +74,7 @@
               v-model="form.username"
               type="text"
               class="form-input"
-              placeholder="username"
+              placeholder="имя_пользователя"
               required
               :disabled="isLoading"
             />
