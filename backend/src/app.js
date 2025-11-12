@@ -9,6 +9,8 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 // Импорт маршрутов
@@ -183,26 +185,53 @@ class WebStreamApp {
                     console.log(`🔄 Преобразовано ID ${streamId} → stream_key ${streamName}`);
                 }
                 
-                const nginxUrl = `http://nginx:80/hls/${streamName}/${filename}`;
-                console.log(`📡 Запрос к Nginx: ${nginxUrl}`);
+                // Читаем файл напрямую из файловой системы
+                const filePath = path.join('/var/www/streams/hls', streamName, filename);
+                console.log(`📂 Чтение файла: ${filePath}`);
                 
-                const response = await fetch(nginxUrl);
-                if (!response.ok) {
-                    console.warn(`⚠️ Nginx вернул ${response.status} для ${nginxUrl}`);
-                    return res.status(response.status).json({ error: 'HLS stream not found' });
+                // Проверяем, что путь не выходит за границы директории (безопасность)
+                const realPath = fs.realpathSync(path.join('/var/www/streams/hls', streamName)).normalize();
+                const requestedPath = fs.realpathSync(filePath).normalize();
+                
+                if (!requestedPath.startsWith(realPath)) {
+                    console.warn(`⚠️ Попытка доступа за границы директории: ${requestedPath}`);
+                    return res.status(403).json({ error: 'Forbidden' });
                 }
                 
-                // Устанавливаем правильные заголовки для HLS потока
+                // Проверяем существование файла
+                if (!fs.existsSync(filePath)) {
+                    console.warn(`⚠️ Файл не найден: ${filePath}`);
+                    return res.status(404).json({ error: 'File not found' });
+                }
+                
+                // Определяем тип контента
+                let contentType = 'application/octet-stream';
+                if (filename.endsWith('.m3u8')) {
+                    contentType = 'application/vnd.apple.mpegurl';
+                } else if (filename.endsWith('.ts')) {
+                    contentType = 'video/mp2t';
+                }
+                
+                // Читаем и отправляем файл
+                const fileSize = fs.statSync(filePath).size;
                 res.set({
-                    'Content-Type': response.headers.get('content-type') || 'application/vnd.apple.mpegurl',
-                    'Content-Length': response.headers.get('content-length') || '',
+                    'Content-Type': contentType,
+                    'Content-Length': fileSize,
                     'Cache-Control': 'no-cache',
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
                     'Access-Control-Allow-Headers': 'Range, Content-Type'
                 });
                 
-                response.body.pipe(res);
+                const fileStream = fs.createReadStream(filePath);
+                fileStream.pipe(res);
+                
+                fileStream.on('error', (error) => {
+                    console.error(`❌ Ошибка при чтении файла ${filePath}:`, error);
+                    if (!res.headersSent) {
+                        res.status(500).json({ error: 'Internal server error' });
+                    }
+                });
             } catch (error) {
                 console.error('❌ Ошибка проксирования HLS:', error);
                 res.set({
@@ -210,7 +239,9 @@ class WebStreamApp {
                     'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
                     'Access-Control-Allow-Headers': 'Range, Content-Type'
                 });
-                res.status(500).json({ error: 'Internal server error' });
+                if (!res.headersSent) {
+                    res.status(500).json({ error: 'Internal server error' });
+                }
             }
         });
 
