@@ -80,16 +80,17 @@ const isLive = ref(false)
 
 // Computed
 const hlsUrl = computed(() => {
-  // Используем streamId через backend прокси (безопаснее)
-  if (props.streamId) {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
-    return `${apiUrl}/hls/${props.streamId}/index.m3u8`
-  }
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
   
-  // Fallback на streamName для обратной совместимости
+  // Приоритет 1: streamName (stream_key) напрямую к Nginx
   if (props.streamName) {
     const hlsBaseUrl = import.meta.env.VITE_HLS_URL || 'http://localhost:8083'
     return `${hlsBaseUrl}/hls/${props.streamName}/index.m3u8`
+  }
+  
+  // Приоритет 2: streamId через backend прокси (преобразует ID в stream_key)
+  if (props.streamId) {
+    return `${apiUrl}/hls/${props.streamId}/index.m3u8`
   }
   
   return null
@@ -110,12 +111,10 @@ const checkHLSAvailability = async () => {
 }
 
 const startHLSMonitoring = () => {
-  // Очищаем предыдущий интервал
   if (checkInterval.value) {
     clearInterval(checkInterval.value)
   }
   
-  // Запускаем проверку каждые 5 секунд
   checkInterval.value = setInterval(() => {
     if (!isLive.value) {
       checkHLSAvailability()
@@ -133,34 +132,32 @@ const stopHLSMonitoring = () => {
 const initHLS = () => {
   if (!videoRef.value) return
 
-  // Очищаем предыдущий HLS экземпляр
   if (hlsInstance.value) {
     hlsInstance.value.destroy()
     hlsInstance.value = null
   }
 
   if (Hls.isSupported()) {
-    // Используем hls.js для браузеров без нативной поддержки HLS
     hlsInstance.value = new Hls({
       enableWorker: true,
-      lowLatencyMode: false, // Отключаем для стабильности
+      lowLatencyMode: false,
       backBufferLength: 90,
-      maxLoadingDelay: 30, // Увеличиваем время ожидания загрузки
-      maxBufferLength: 60, // Увеличиваем буфер
+      maxLoadingDelay: 30,
+      maxBufferLength: 60,
       maxBufferSize: 60 * 1000 * 1000,
-      maxBufferHole: 0.5, // Увеличиваем допустимый пропуск
-      maxMaxBufferLength: 120, // Максимальный буфер
-      liveSyncDurationCount: 3, // Количество сегментов для синхронизации
-      liveMaxLatencyDurationCount: 10, // Максимальная задержка для live
-      manifestLoadingTimeOut: 30000, // 30 секунд на загрузку манифеста
-      manifestLoadingMaxRetry: 999, // Бесконечные попытки загрузки манифеста
-      manifestLoadingRetryDelay: 3000, // 3 секунды между попытками
-      levelLoadingTimeOut: 30000, // 30 секунд на загрузку уровня
-      levelLoadingMaxRetry: 999, // Бесконечные попытки загрузки уровня
-      levelLoadingRetryDelay: 3000, // 3 секунды между попытками
-      fragLoadingTimeOut: 30000, // 30 секунд на загрузку фрагмента
-      fragLoadingMaxRetry: 999, // Бесконечные попытки загрузки фрагмента
-      fragLoadingRetryDelay: 3000 // 3 секунды между попытками
+      maxBufferHole: 0.5,
+      maxMaxBufferLength: 120,
+      liveSyncDurationCount: 3,
+      liveMaxLatencyDurationCount: 10,
+      manifestLoadingTimeOut: 30000,
+      manifestLoadingMaxRetry: 999,
+      manifestLoadingRetryDelay: 3000,
+      levelLoadingTimeOut: 30000,
+      levelLoadingMaxRetry: 999,
+      levelLoadingRetryDelay: 3000,
+      fragLoadingTimeOut: 30000,
+      fragLoadingMaxRetry: 999,
+      fragLoadingRetryDelay: 3000
     })
     
     hlsInstance.value.loadSource(hlsUrl.value)
@@ -170,7 +167,7 @@ const initHLS = () => {
       isLoading.value = false
       isLive.value = true
       hasError.value = false
-      stopHLSMonitoring() // Останавливаем мониторинг при успешном подключении
+      stopHLSMonitoring()
     })
     
     hlsInstance.value.on(Hls.Events.ERROR, (event, data) => {
@@ -178,28 +175,23 @@ const initHLS = () => {
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
             if (data.details === 'manifestLoadError') {
-              // Не показываем ошибку, просто ждем
               isLoading.value = true
               hasError.value = false
               isLive.value = false
-              // Запускаем мониторинг доступности HLS файла
               startHLSMonitoring()
             }
-            // Полностью пересоздаем HLS экземпляр после фатальной ошибки
             setTimeout(() => {
               initHLS()
             }, 3000)
             break
           case Hls.ErrorTypes.MEDIA_ERROR:
-            // Даем больше времени перед восстановлением
             setTimeout(() => {
               if (hlsInstance.value) {
-              hlsInstance.value.recoverMediaError()
+                hlsInstance.value.recoverMediaError()
               }
             }, 3000)
             break
           default:
-            // Даем больше времени перед полным перезапуском
             setTimeout(() => {
               initHLS()
             }, 8000)
@@ -208,25 +200,20 @@ const initHLS = () => {
       }
     })
   } else if (videoRef.value.canPlayType('application/vnd.apple.mpegurl')) {
-    // Нативная поддержка HLS (Safari)
     videoRef.value.src = hlsUrl.value
   } else {
-    // Браузер не поддерживает HLS
     handleError({ type: 'unsupported' })
   }
 }
 
 const handleError = (error) => {
-  // Показываем ошибку только для критических случаев
   if (error.type === 'unsupported') {
-  hasError.value = true
-  isLoading.value = false
-  isLive.value = false
-      errorMessage.value = 'Ваш браузер не поддерживает HLS.'
+    hasError.value = true
+    isLoading.value = false
+    isLive.value = false
+    errorMessage.value = 'Ваш браузер не поддерживает HLS.'
     emit('error', error)
   } else {
-    // Для сетевых ошибок и ошибок медиа не показываем ошибку,
-    // а продолжаем попытки подключения
     isLoading.value = true
     hasError.value = false
     isLive.value = false
@@ -239,7 +226,6 @@ const retry = () => {
   isLoading.value = true
   isLive.value = false
   
-  // Останавливаем предыдущий мониторинг
   stopHLSMonitoring()
   
   setTimeout(() => {
@@ -266,19 +252,16 @@ const onError = (event) => {
 
 // Lifecycle
 onMounted(() => {
-  // Даем больше времени OBS на запуск и создание HLS файлов
   setTimeout(() => {
     initHLS()
-  }, 5000) // Увеличиваем до 5 секунд
+  }, 5000)
 })
 
 onUnmounted(() => {
-  // Очищаем HLS экземпляр при размонтировании
   if (hlsInstance.value) {
     hlsInstance.value.destroy()
     hlsInstance.value = null
   }
-  // Останавливаем мониторинг
   stopHLSMonitoring()
 })
 
@@ -411,7 +394,6 @@ watch(() => props.streamName, () => {
   color: #6b7280;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .video-element {
     min-height: 200px;
