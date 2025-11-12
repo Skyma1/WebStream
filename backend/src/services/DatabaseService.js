@@ -322,7 +322,7 @@ class DatabaseService {
                 u.username AS operator_username,
                 u.email AS operator_email
             FROM streams s
-            JOIN users u ON s.operator_id = u.id
+            LEFT JOIN users u ON s.operator_id = u.id
             WHERE s.id = $1
             LIMIT 1
         `;
