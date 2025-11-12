@@ -198,7 +198,6 @@ router.post('/create-first-admin', [
             user: {
                 id: user.id,
                 username: user.username,
-                email: user.email,
                 role: user.role,
                 created_at: user.created_at
             }
@@ -334,7 +333,6 @@ router.post('/register', [
             user: {
                 id: user.id,
                 username: user.username,
-                email: user.email,
                 role: user.role,
                 created_at: user.created_at
             }
@@ -454,7 +452,6 @@ router.post('/login', [
             user: {
                 id: user.id,
                 username: user.username,
-                email: user.email,
                 role: user.role,
                 created_at: user.created_at
             }
@@ -545,7 +542,7 @@ router.get('/me', requireAuth, async (req, res) => {
 
         res.json({
             id: user.id,
-            email: user.email,
+            username: user.username,
             role: user.role,
             created_at: user.created_at,
             updated_at: user.updated_at

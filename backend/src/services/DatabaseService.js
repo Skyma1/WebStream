@@ -90,6 +90,7 @@ class DatabaseService {
             RETURNING id, username, email, role, created_at
         `;
         
+        // Email опциональный, может быть null
         const result = await this.query(query, [username, passwordHash, role, email || null]);
         return result.rows[0];
     }
