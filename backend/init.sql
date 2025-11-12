@@ -4,8 +4,9 @@
 -- Таблица пользователей
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    username VARCHAR(50) UNIQUE,
     role VARCHAR(50) NOT NULL CHECK (role IN ('viewer', 'operator', 'admin')),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -61,7 +62,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 );
 
 -- Индексы для оптимизации
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_secret_codes_code_hash ON secret_codes(code_hash);
 CREATE INDEX IF NOT EXISTS idx_secret_codes_is_used ON secret_codes(is_used);
@@ -85,10 +86,8 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Вставка начальных данных
--- Создание администратора по умолчанию
-INSERT INTO users (email, password_hash, role) VALUES 
-('admin@webstream.local', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin')
-ON CONFLICT (email) DO NOTHING;
+-- Администратор по умолчанию больше не создаётся автоматически
+-- Он будет создан через API при первом запуске (/api/auth/create-first-admin)
 
 -- Создание тестовых секретных кодов
 INSERT INTO secret_codes (code, code_hash, role, prefix) VALUES 
@@ -105,12 +104,7 @@ COMMENT ON TABLE streams IS 'Активные трансляции операт�
 COMMENT ON TABLE chat_messages IS 'Сообщения в чате трансляций';
 COMMENT ON TABLE user_sessions IS 'Активные сессии пользователей';
 
--- Миграция для добавления полей профиля пользователя
--- Добавляем поля username, description и avatar в таблицу users
-
--- Добавляем поле username (уникальное)
-ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE;
-
+-- Миграция для добавления полей профиля пользователя (если они еще не добавлены)
 -- Добавляем поле description
 ALTER TABLE users ADD COLUMN IF NOT EXISTS description TEXT;
 
@@ -120,11 +114,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
 -- Создаем индекс для быстрого поиска по username
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
--- Обновляем существующих пользователей, устанавливая username = email (если username пустой)
-UPDATE users SET username = email WHERE username IS NULL OR username = '';
-
 -- Комментарии к полям
-COMMENT ON COLUMN users.username IS 'Уникальный никнейм пользователя';
+COMMENT ON COLUMN users.username IS 'Уникальный никнейм пользователя (обязателен для новых пользователей)';
+COMMENT ON COLUMN users.email IS 'Email пользователя (опционально, может быть NULL)';
 COMMENT ON COLUMN users.description IS 'Описание профиля пользователя';
 COMMENT ON COLUMN users.avatar IS 'Аватар пользователя в формате base64';
 
