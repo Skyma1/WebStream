@@ -80,15 +80,15 @@ const isLive = ref(false)
 
 // Computed
 const hlsUrl = computed(() => {
-  const hlsBaseUrl = import.meta.env.VITE_HLS_URL || 'http://localhost:8083'
-  
-  // Используем streamId, если передано (безопаснее)
+  // Используем streamId через backend прокси (безопаснее)
   if (props.streamId) {
-    return `${hlsBaseUrl}/hls/${props.streamId}/index.m3u8`
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+    return `${apiUrl}/hls/${props.streamId}/index.m3u8`
   }
   
   // Fallback на streamName для обратной совместимости
   if (props.streamName) {
+    const hlsBaseUrl = import.meta.env.VITE_HLS_URL || 'http://localhost:8083'
     return `${hlsBaseUrl}/hls/${props.streamName}/index.m3u8`
   }
   
