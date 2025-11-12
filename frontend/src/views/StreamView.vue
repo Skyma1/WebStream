@@ -32,6 +32,23 @@
         <!-- Активная трансляция -->
         <div v-else class="stream-content">
           <div class="video-section">
+            <!-- Заголовок трансляции -->
+            <div class="stream-header">
+              <div class="stream-title-block">
+                <h2 class="stream-title">{{ stream.title }}</h2>
+                <p v-if="stream.description" class="stream-description">{{ stream.description }}</p>
+              </div>
+              <button 
+                v-if="canViewViewers"
+                @click="showViewersModal = true"
+                class="viewers-button"
+                :title="'Просмотр списка зрителей'"
+              >
+                <span class="viewers-icon">👥</span>
+                <span class="viewers-count">{{ stream.viewer_count || 0 }}</span>
+              </button>
+            </div>
+
             <div class="video-container">
               <HLSPlayer 
                 :streamName="stream.stream_key || stream.id"
@@ -96,6 +113,13 @@
         </div>
       </div>
     </main>
+
+    <!-- Модальное окно со списком зрителей -->
+    <ViewersModal 
+      :show="showViewersModal"
+      :streamId="parseInt(route.params.id)"
+      @close="showViewersModal = false"
+    />
   </div>
 </template>
 
@@ -106,6 +130,7 @@ import { useAuthStore } from '@/store/auth'
 import { useStreamStore } from '@/store/stream'
 import { useToast } from 'vue-toastification'
 import HLSPlayer from '@/components/HLSPlayer.vue'
+import ViewersModal from '@/components/ViewersModal.vue'
 import { getUserColor } from '@/utils/userColors'
 
 const router = useRouter()
@@ -113,6 +138,9 @@ const route = useRoute()
 const authStore = useAuthStore()
 const streamStore = useStreamStore()
 const toast = useToast()
+
+// Состояние модального окна зрителей
+const showViewersModal = ref(false)
 
 // Props
 const props = defineProps({
@@ -129,6 +157,11 @@ const isConnected = ref(false)
 const viewerCount = ref(0)
 const newMessage = ref('')
 // remoteVideo больше не нужен для HLS
+
+// Проверка прав на просмотр списка зрителей (только операторы и админы)
+const canViewViewers = computed(() => {
+  return authStore.user && (authStore.user.role === 'operator' || authStore.user.role === 'admin')
+})
 const chatMessagesRef = ref(null)
 
 // Используем сообщения из store
@@ -663,5 +696,92 @@ onUnmounted(async () => {
   .video-container {
     height: 300px;
   }
+  
+  .stream-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .viewers-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Стили для заголовка трансляции и кнопки зрителей */
+.stream-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.stream-title-block {
+  flex: 1;
+  min-width: 0;
+}
+
+.stream-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 0.25rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stream-description {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.viewers-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, rgba(83, 252, 24, 0.15) 0%, rgba(0, 212, 170, 0.15) 100%);
+  border: 1px solid rgba(83, 252, 24, 0.3);
+  border-radius: 12px;
+  color: #53fc18;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.viewers-button:hover {
+  background: linear-gradient(135deg, rgba(83, 252, 24, 0.25) 0%, rgba(0, 212, 170, 0.25) 100%);
+  border-color: #53fc18;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(83, 252, 24, 0.3);
+}
+
+.viewers-button:active {
+  transform: translateY(0);
+}
+
+.viewers-icon {
+  font-size: 1.25rem;
+}
+
+.viewers-count {
+  font-size: 1.125rem;
+  font-weight: 700;
+  min-width: 20px;
+  text-align: center;
 }
 </style>

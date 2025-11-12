@@ -754,4 +754,69 @@ router.get('/:id/webrtc/producers', requireViewerOrOperator, async (req, res) =>
     }
 });
 
+/**
+ * @swagger
+ * /api/streams/{id}/viewers:
+ *   get:
+ *     tags: [Streams]
+ *     summary: Получить список зрителей трансляции (только для операторов и админов)
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Список зрителей успешно получен
+ *       403:
+ *         description: Доступ запрещён
+ */
+router.get('/:id/viewers', requireOperator, async (req, res) => {
+    try {
+        const streamId = parseInt(req.params.id);
+
+        // Проверяем существование трансляции
+        const stream = await req.app.locals.databaseService.getStreamById(streamId);
+        if (!stream) {
+            return res.status(404).json({
+                error: 'Трансляция не найдена',
+                code: 'STREAM_NOT_FOUND'
+            });
+        }
+
+        // Проверяем права доступа (оператор может видеть только свои трансляции)
+        if (req.user.role === 'operator' && stream.operator_id !== req.user.userId) {
+            return res.status(403).json({
+                error: 'Доступ запрещён. Вы можете просматривать зрителей только своих трансляций.',
+                code: 'FORBIDDEN'
+            });
+        }
+
+        // Получаем список зрителей из SocketService
+        const socketService = req.app.locals.socketService;
+        const viewers = socketService.getStreamViewers(streamId);
+
+        res.json({
+            streamId: streamId,
+            viewerCount: viewers.length,
+            viewers: viewers.map(v => ({
+                id: v.id,
+                username: v.username,
+                role: v.role,
+                connectedAt: v.connectedAt
+            }))
+        });
+    } catch (error) {
+        console.error('❌ Ошибка получения списка зрителей:', error);
+        res.status(500).json({
+            error: 'Ошибка получения списка зрителей',
+            code: 'GET_VIEWERS_ERROR',
+            details: error.message
+        });
+    }
+});
+
 module.exports = router;

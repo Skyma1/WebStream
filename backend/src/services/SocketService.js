@@ -424,6 +424,35 @@ class SocketService {
         }
         return roles;
     }
+
+    /**
+     * Получение списка зрителей трансляции
+     */
+    getStreamViewers(streamId) {
+        const viewers = [];
+        const streamSocketIds = this.streamRooms.get(streamId);
+        
+        if (!streamSocketIds) {
+            return viewers;
+        }
+
+        // Собираем информацию о каждом зрителе
+        for (const socketId of streamSocketIds) {
+            const user = this.userSessions.get(socketId);
+            if (user) {
+                viewers.push({
+                    id: user.id,
+                    username: user.username || user.email?.split('@')[0] || 'Пользователь',
+                    email: user.email,
+                    role: user.role,
+                    socketId: socketId,
+                    connectedAt: user.connectedAt || new Date().toISOString()
+                });
+            }
+        }
+
+        return viewers;
+    }
 }
 
 module.exports = SocketService;
