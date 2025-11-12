@@ -179,7 +179,7 @@ class WebStreamApp {
                     const stream = await this.databaseService.getStreamById(streamId);
                     if (!stream || !stream.stream_key) {
                         console.warn(`⚠️ Трансляция ID ${streamId} не найдена`);
-                        return res.status(404).json({ error: 'Stream not found' });
+                    return res.status(404).json({ error: 'Stream not found' });
                     }
                     streamName = stream.stream_key;
                     console.log(`🔄 Преобразовано ID ${streamId} → stream_key ${streamName}`);
@@ -240,7 +240,7 @@ class WebStreamApp {
                     'Access-Control-Allow-Headers': 'Range, Content-Type'
                 });
                 if (!res.headersSent) {
-                    res.status(500).json({ error: 'Internal server error' });
+                res.status(500).json({ error: 'Internal server error' });
                 }
             }
         });

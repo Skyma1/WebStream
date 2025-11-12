@@ -137,13 +137,21 @@ dev-frontend: ## Запустить только фронтенд в режим�
 	cd frontend && npm run dev
 
 # Команды для администрирования
-admin-create-code: ## Создать новый секретный код (требует запущенного бэкенда)
+generate-code: ## Создать секретный код для регистрации (напр: make generate-code ROLE=viewer DAYS=30)
 	@echo "$(YELLOW)Создание нового секретного кода...$(NC)"
-	@read -p "Введите роль (viewer/operator): " role; \
-	read -p "Введите префикс (опционально): " prefix; \
-	curl -X POST http://localhost:3000/api/admin/codes \
-		-H "Content-Type: application/json" \
-		-d "{\"role\": \"$$role\", \"prefix\": \"$$prefix\"}"
+	docker exec webstream_backend node generate-code.js $(ROLE) $(DAYS)
+
+generate-code-viewer: ## Создать код для viewer (30 дней)
+	@echo "$(YELLOW)Создание кода для viewer...$(NC)"
+	docker exec webstream_backend node generate-code.js viewer 30
+
+generate-code-operator: ## Создать код для operator (30 дней)
+	@echo "$(YELLOW)Создание кода для operator...$(NC)"
+	docker exec webstream_backend node generate-code.js operator 30
+
+generate-code-admin: ## Создать код для admin (30 дней)
+	@echo "$(YELLOW)Создание кода для admin...$(NC)"
+	docker exec webstream_backend node generate-code.js admin 30
 
 # Команды для мониторинга
 monitor: ## Показать мониторинг ресурсов

@@ -175,7 +175,7 @@ const initHLS = () => {
             // Даем больше времени перед восстановлением
             setTimeout(() => {
               if (hlsInstance.value) {
-                hlsInstance.value.recoverMediaError()
+              hlsInstance.value.recoverMediaError()
               }
             }, 3000)
             break
@@ -200,10 +200,10 @@ const initHLS = () => {
 const handleError = (error) => {
   // Показываем ошибку только для критических случаев
   if (error.type === 'unsupported') {
-    hasError.value = true
-    isLoading.value = false
-    isLive.value = false
-    errorMessage.value = 'Ваш браузер не поддерживает HLS.'
+  hasError.value = true
+  isLoading.value = false
+  isLive.value = false
+      errorMessage.value = 'Ваш браузер не поддерживает HLS.'
     emit('error', error)
   } else {
     // Для сетевых ошибок и ошибок медиа не показываем ошибку,

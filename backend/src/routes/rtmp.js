@@ -63,10 +63,10 @@ router.post('/start', async (req, res) => {
             const legacyStreamId = parseInt(streamKey, 10);
             if (!Number.isNaN(legacyStreamId)) {
                 const legacyUpdateQuery = `
-                    UPDATE streams 
+                UPDATE streams 
                     SET is_active = true,
                         started_at = CURRENT_TIMESTAMP 
-                    WHERE id = $1
+                WHERE id = $1
                     RETURNING id
                 `;
                 result = await req.app.locals.databaseService.query(legacyUpdateQuery, [legacyStreamId]);
@@ -148,10 +148,10 @@ router.post('/stop', async (req, res) => {
             const legacyStreamId = parseInt(streamKey, 10);
             if (!Number.isNaN(legacyStreamId)) {
                 const legacyUpdateQuery = `
-                    UPDATE streams 
+                UPDATE streams 
                     SET is_active = false,
                         ended_at = CURRENT_TIMESTAMP 
-                    WHERE id = $1
+                WHERE id = $1
                     RETURNING id
                 `;
                 result = await req.app.locals.databaseService.query(legacyUpdateQuery, [legacyStreamId]);
