@@ -102,16 +102,12 @@ router.get('/check-first-user', async (req, res) => {
  *             type: object
  *             required:
  *               - username
- *               - email
  *               - password
  *             properties:
  *               username:
  *                 type: string
  *                 minLength: 3
  *                 maxLength: 20
- *               email:
- *                 type: string
- *                 format: email
  *               password:
  *                 type: string
  *                 minLength: 6
@@ -131,11 +127,8 @@ router.post('/create-first-admin', [
     body('username')
         .isLength({ min: 3, max: 20 })
         .withMessage('Имя пользователя должно быть от 3 до 20 символов')
-        .matches(/^[a-zA-Z0-9_]+$/)
-        .withMessage('Имя пользователя может содержать только буквы, цифры и подчеркивания'),
-    body('email')
-        .isEmail()
-        .withMessage('Некорректный email'),
+        .matches(/^[a-zA-Zа-яА-ЯёЁ0-9_]+$/)
+        .withMessage('Имя пользователя может содержать только буквы (латиница и кириллица), цифры и подчеркивания'),
     body('password')
         .isLength({ min: 6 })
         .withMessage('Пароль должен быть не менее 6 символов')
@@ -161,13 +154,13 @@ router.post('/create-first-admin', [
             });
         }
 
-        const { username, email, password } = req.body;
+        const { username, password } = req.body;
 
         // Проверка уникальности
-        const existingUser = await req.app.locals.databaseService.getUserByEmail(email);
+        const existingUser = await req.app.locals.databaseService.findUserByUsername(username);
         if (existingUser) {
             return res.status(400).json({
-                error: 'Пользователь с таким email уже существует',
+                error: 'Пользователь с таким именем уже существует',
                 code: 'USER_EXISTS'
             });
         }
@@ -175,17 +168,15 @@ router.post('/create-first-admin', [
         // Создание первого администратора
         const user = await req.app.locals.databaseService.createUser({
             username,
-            email,
             password,
-            role: 'admin',
-            isVerified: true
+            role: 'admin'
         });
 
         // Генерация JWT токена
         const token = jwt.sign(
             { 
                 userId: user.id, 
-                email: user.email, 
+                username: user.username, 
                 role: user.role 
             },
             process.env.JWT_SECRET,
@@ -225,13 +216,14 @@ router.post('/create-first-admin', [
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - username
  *               - password
  *               - secretCode
  *             properties:
- *               email:
+ *               username:
  *                 type: string
- *                 format: email
+ *                 minLength: 3
+ *                 maxLength: 20
  *               password:
  *                 type: string
  *                 minLength: 6
@@ -251,7 +243,7 @@ router.post('/create-first-admin', [
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       409:
- *         description: Пользователь с таким email уже существует
+ *         description: Пользователь с таким именем уже существует
  */
 router.post('/register', [
     body('username')
@@ -360,13 +352,15 @@ router.post('/register', [
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - username
  *               - password
+ *               - secretCode
  *             properties:
- *               email:
+ *               username:
  *                 type: string
- *                 format: email
  *               password:
+ *                 type: string
+ *               secretCode:
  *                 type: string
  *     responses:
  *       200:
