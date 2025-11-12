@@ -153,8 +153,8 @@ class WebStreamApp {
         this.app.use('/api/users', authMiddleware.requireAuth, userRoutes);
 
         // Проксирование HLS потоков от nginx
-        // Поддержка двух форматов: /hls/:streamId/:filename и /hls/:streamKey/:filename
-        this.app.get('/hls/:streamIdentifier/:filename', async (req, res) => {
+        // Поддержка двух форматов: /api/hls/:streamId/:filename и /api/hls/:streamKey/:filename
+        this.app.get('/api/hls/:streamIdentifier/:filename', async (req, res) => {
             const { streamIdentifier, filename } = req.params;
             let streamName = streamIdentifier;
             
