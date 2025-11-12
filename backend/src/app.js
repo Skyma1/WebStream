@@ -189,19 +189,25 @@ class WebStreamApp {
                 const filePath = path.join('/var/www/streams/hls', streamName, filename);
                 console.log(`📂 Чтение файла: ${filePath}`);
                 
-                // Проверяем, что путь не выходит за границы директории (безопасность)
-                const realPath = fs.realpathSync(path.join('/var/www/streams/hls', streamName)).normalize();
-                const requestedPath = fs.realpathSync(filePath).normalize();
-                
-                if (!requestedPath.startsWith(realPath)) {
-                    console.warn(`⚠️ Попытка доступа за границы директории: ${requestedPath}`);
-                    return res.status(403).json({ error: 'Forbidden' });
-                }
-                
-                // Проверяем существование файла
+                // Проверяем существование файла СНАЧАЛА
                 if (!fs.existsSync(filePath)) {
                     console.warn(`⚠️ Файл не найден: ${filePath}`);
                     return res.status(404).json({ error: 'File not found' });
+                }
+                
+                // Проверяем, что путь не выходит за границы директории (безопасность)
+                try {
+                    const basePath = path.join('/var/www/streams/hls', streamName);
+                    const realPath = fs.realpathSync(basePath).normalize();
+                    const requestedPath = fs.realpathSync(filePath).normalize();
+                    
+                    if (!requestedPath.startsWith(realPath)) {
+                        console.warn(`⚠️ Попытка доступа за границы директории: ${requestedPath}`);
+                        return res.status(403).json({ error: 'Forbidden' });
+                    }
+                } catch (pathError) {
+                    console.warn(`⚠️ Ошибка при проверке пути: ${pathError.message}`);
+                    return res.status(400).json({ error: 'Invalid path' });
                 }
                 
                 // Определяем тип контента
