@@ -35,11 +35,11 @@
             >
               <div class="stream-preview">
               <HLSPlayer 
-                :streamName="String(stream.id)"
-                  :streamTitle="stream.title"
-                  :showControls="false"
-                  class="preview-player"
-                />
+                :streamId="String(stream.id)"
+                :streamTitle="stream.title"
+                :showControls="false"
+                class="preview-player"
+              />
                 <div class="stream-overlay">
                   <span class="live-indicator">
                     <span class="live-dot"></span>

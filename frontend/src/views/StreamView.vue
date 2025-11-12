@@ -51,7 +51,7 @@
 
             <div class="video-container">
               <HLSPlayer 
-                :streamName="String(stream.id)"
+                :streamId="String(stream.id)"
                 :streamTitle="stream.title"
                 @error="onStreamError"
                 @canplay="onStreamReady"

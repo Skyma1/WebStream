@@ -51,7 +51,13 @@ import Hls from 'hls.js'
 const props = defineProps({
   streamName: {
     type: String,
-    required: true
+    required: false,
+    default: null
+  },
+  streamId: {
+    type: [String, Number],
+    required: false,
+    default: null
   },
   streamTitle: {
     type: String,
@@ -75,11 +81,24 @@ const isLive = ref(false)
 // Computed
 const hlsUrl = computed(() => {
   const hlsBaseUrl = import.meta.env.VITE_HLS_URL || 'http://localhost:8083'
-  return `${hlsBaseUrl}/hls/${props.streamName}.m3u8`
+  
+  // Используем streamId, если передано (безопаснее)
+  if (props.streamId) {
+    return `${hlsBaseUrl}/hls/${props.streamId}/index.m3u8`
+  }
+  
+  // Fallback на streamName для обратной совместимости
+  if (props.streamName) {
+    return `${hlsBaseUrl}/hls/${props.streamName}/index.m3u8`
+  }
+  
+  return null
 })
 
 // Methods
 const checkHLSAvailability = async () => {
+  if (!hlsUrl.value) return
+  
   try {
     const response = await fetch(hlsUrl.value, { method: 'HEAD' })
     if (response.ok && !isLive.value) {
