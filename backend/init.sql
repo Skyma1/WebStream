@@ -132,3 +132,6 @@ WHERE stream_key IS NULL;
 UPDATE users SET username = 'user_' || id::text WHERE username IS NULL;
 -- Затем добавляем constraint
 ALTER TABLE users ALTER COLUMN username SET NOT NULL;
+
+-- Миграция: удаляем NOT NULL constraint с email в существующих таблицах
+ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
