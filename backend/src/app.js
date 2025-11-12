@@ -156,6 +156,19 @@ class WebStreamApp {
             const { streamIdentifier, filename } = req.params;
             let streamName = streamIdentifier;
             
+            // Устанавливаем CORS заголовки для всех ответов
+            res.set({
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+                'Access-Control-Allow-Headers': 'Range, Content-Type',
+                'Access-Control-Max-Age': '86400'
+            });
+            
+            // Обработка OPTIONS запроса
+            if (req.method === 'OPTIONS') {
+                return res.status(200).end();
+            }
+            
             try {
                 // Проверяем, является ли streamIdentifier числовым ID
                 const streamId = parseInt(streamIdentifier);
@@ -163,30 +176,40 @@ class WebStreamApp {
                     // Получаем stream_key по ID для безопасности
                     const stream = await this.databaseService.getStreamById(streamId);
                     if (!stream || !stream.stream_key) {
+                        console.warn(`⚠️ Трансляция ID ${streamId} не найдена`);
                         return res.status(404).json({ error: 'Stream not found' });
                     }
                     streamName = stream.stream_key;
+                    console.log(`🔄 Преобразовано ID ${streamId} → stream_key ${streamName}`);
                 }
                 
                 const nginxUrl = `http://nginx:80/hls/${streamName}/${filename}`;
+                console.log(`📡 Запрос к Nginx: ${nginxUrl}`);
                 
                 const response = await fetch(nginxUrl);
                 if (!response.ok) {
-                    return res.status(404).json({ error: 'HLS stream not found' });
+                    console.warn(`⚠️ Nginx вернул ${response.status} для ${nginxUrl}`);
+                    return res.status(response.status).json({ error: 'HLS stream not found' });
                 }
                 
-                // Устанавливаем правильные заголовки для HLS
+                // Устанавливаем правильные заголовки для HLS потока
                 res.set({
                     'Content-Type': response.headers.get('content-type') || 'application/vnd.apple.mpegurl',
+                    'Content-Length': response.headers.get('content-length') || '',
                     'Cache-Control': 'no-cache',
                     'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'GET',
-                    'Access-Control-Allow-Headers': 'Range'
+                    'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Range, Content-Type'
                 });
                 
                 response.body.pipe(res);
             } catch (error) {
                 console.error('❌ Ошибка проксирования HLS:', error);
+                res.set({
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Range, Content-Type'
+                });
                 res.status(500).json({ error: 'Internal server error' });
             }
         });
