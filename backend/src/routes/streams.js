@@ -797,6 +797,15 @@ router.get('/:id/viewers', requireOperator, async (req, res) => {
 
         // Получаем список зрителей из SocketService
         const socketService = req.app.locals.socketService;
+        
+        if (!socketService) {
+            console.error('❌ SocketService не инициализирован в app.locals');
+            return res.status(503).json({
+                error: 'Сервис не доступен. SocketService не инициализирован.',
+                code: 'SERVICE_UNAVAILABLE'
+            });
+        }
+
         const viewers = socketService.getStreamViewers(streamId);
 
         res.json({

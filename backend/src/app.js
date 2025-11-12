@@ -125,6 +125,11 @@ class WebStreamApp {
             console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
             next();
         });
+
+        // Добавляем сервисы в app.locals для доступа из роутов
+        this.app.locals.databaseService = this.databaseService;
+        this.app.locals.socketService = this.socketService;
+        this.app.locals.mediaSoupService = this.mediaSoupService;
     }
 
     /**

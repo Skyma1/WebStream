@@ -485,11 +485,44 @@ const createCode = async () => {
 
 const copyCode = async (code) => {
   try {
-    await navigator.clipboard.writeText(code)
-    toast.success('Код скопирован в буфер обмена')
+    // Попытка использовать современный Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(code)
+      toast.success('Код скопирован в буфер обмена')
+    } else {
+      // Fallback для старых браузеров или HTTP
+      const textArea = document.createElement('textarea')
+      textArea.value = code
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-999999px'
+      textArea.style.top = '-999999px'
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      
+      try {
+        const successful = document.execCommand('copy')
+        if (successful) {
+          toast.success('Код скопирован в буфер обмена')
+        } else {
+          throw new Error('execCommand failed')
+        }
+      } finally {
+        textArea.remove()
+      }
+    }
   } catch (error) {
     console.error('❌ Ошибка копирования:', error)
-    toast.error('Ошибка копирования кода')
+    
+    // Показываем текст для ручного копирования
+    toast.error('Не удалось скопировать автоматически')
+    
+    // Показываем prompt с кодом
+    try {
+      prompt('Скопируйте код вручную:', code)
+    } catch (e) {
+      console.error('Prompt error:', e)
+    }
   }
 }
 
