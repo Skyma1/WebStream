@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    username VARCHAR(50) UNIQUE,
+    username VARCHAR(50) UNIQUE NOT NULL,
     role VARCHAR(50) NOT NULL CHECK (role IN ('viewer', 'operator', 'admin')),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -126,3 +126,9 @@ ALTER TABLE streams ADD COLUMN IF NOT EXISTS stream_key VARCHAR(255) UNIQUE;
 -- Обновляем существующие трансляции, генерируя для них ключи
 UPDATE streams SET stream_key = 'STREAM' || id::text || '_' || extract(epoch from coalesce(started_at, now()))::text
 WHERE stream_key IS NULL;
+
+-- Миграция: добавляем NOT NULL constraint для username в существующих таблицах
+-- Сначала заполняем NULL username значениями
+UPDATE users SET username = 'user_' || id::text WHERE username IS NULL;
+-- Затем добавляем constraint
+ALTER TABLE users ALTER COLUMN username SET NOT NULL;
