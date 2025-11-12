@@ -185,15 +185,32 @@ class WebStreamApp {
                     console.log(`🔄 Преобразовано ID ${streamId} → stream_key ${streamName}`);
                 }
                 
-                // Читаем файл напрямую из файловой системы
-                const filePath = path.join('/var/www/streams/hls', streamName, filename);
-                console.log(`📂 Чтение файла: ${filePath}`);
+                const hlsBasePath = '/var/www/streams/hls';
+                // Первичная попытка: структура /hls/<stream_key>/<filename>
+                let filePath = path.join(hlsBasePath, streamName, filename);
                 
-                // Проверяем существование файла СНАЧАЛА
+                if (!fs.existsSync(filePath)) {
+                    // Альтернативная структура: файлы лежат в корне каталога hls
+                    if (filename === 'index.m3u8') {
+                        const altPlaylist = path.join(hlsBasePath, `${streamName}.m3u8`);
+                        if (fs.existsSync(altPlaylist)) {
+                            filePath = altPlaylist;
+                        }
+                    } else {
+                        const altSegment = path.join(hlsBasePath, filename);
+                        if (fs.existsSync(altSegment)) {
+                            filePath = altSegment;
+                        }
+                    }
+                }
+                
+                // Повторная проверка наличия файла
                 if (!fs.existsSync(filePath)) {
                     console.warn(`⚠️ Файл не найден: ${filePath}`);
                     return res.status(404).json({ error: 'File not found' });
                 }
+                
+                console.log(`📂 Чтение файла: ${filePath}`);
                 
                 // Проверяем, что путь не выходит за границы директории (безопасность)
                 try {
