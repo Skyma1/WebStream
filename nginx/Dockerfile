@@ -4,9 +4,10 @@ FROM tiangolo/nginx-rtmp:latest
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY rtmp.conf /etc/nginx/rtmp.conf
 
-# Копируем entrypoint скрипт
+# Копируем скрипты
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY fix-permissions.sh /fix-permissions.sh
+RUN chmod +x /entrypoint.sh /fix-permissions.sh
 
 EXPOSE 1935 80
 
