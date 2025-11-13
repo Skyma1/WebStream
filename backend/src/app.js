@@ -110,7 +110,7 @@ class WebStreamApp {
         // Rate limiting
         const limiter = rateLimit({
             windowMs: 15 * 60 * 1000, // 15 минут
-            max: 100, // максимум 100 запросов с одного IP
+            max: 10000, // максимум 1000 запросов с одного IP (увеличено с 100)
             message: {
                 error: 'Слишком много запросов с этого IP, попробуйте позже',
                 code: 'RATE_LIMIT_EXCEEDED'
