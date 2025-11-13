@@ -69,14 +69,14 @@ services:
 
   # Nginx с RTMP модулем для стриминга
   nginx:
-    image: tiangolo/nginx-rtmp
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
     container_name: webstream_nginx
     ports:
       - "1935:1935"  # RTMP порт для OBS
       - "8083:80"    # HTTP порт для HLS (изменен с 8082 на 8083)
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/rtmp.conf:/etc/nginx/rtmp.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./streams:/var/www/streams  # HLS файлы
     depends_on:
