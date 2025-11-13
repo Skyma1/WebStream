@@ -45,6 +45,7 @@ class SocketService {
                             success: true,
                             user: {
                                 id: user.id,
+                                username: user.username,
                                 email: user.email,
                                 role: user.role
                             }
@@ -205,6 +206,7 @@ class SocketService {
                         message: message.trim(),
                         user: {
                             id: user.id,
+                            username: user.username,
                             email: user.email,
                             role: user.role
                         },
@@ -221,7 +223,7 @@ class SocketService {
                     
                     this.io.in(roomName).emit('new_chat_message', chatMessage);
 
-                    console.log(`💬 Сообщение от ${user.email} в трансляции ${streamId}: ${message}`);
+                    console.log(`💬 Сообщение от ${user.username || user.email} в трансляции ${streamId}: ${message}`);
                 } catch (error) {
                     console.error('❌ Ошибка отправки сообщения:', error);
                     socket.emit('error', { message: 'Ошибка отправки сообщения' });

@@ -388,7 +388,7 @@ class DatabaseService {
         const query = `
             SELECT 
                 cm.id, cm.stream_id, cm.message, cm.message_type, cm.created_at,
-                u.email as user_email, u.role as user_role
+                u.id as user_id, u.username as user_username, u.email as user_email, u.role as user_role
             FROM chat_messages cm
             JOIN users u ON cm.user_id = u.id
             WHERE cm.stream_id = $1

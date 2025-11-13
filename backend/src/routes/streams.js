@@ -372,7 +372,23 @@ router.get('/:id/chat', requireViewerOrOperator, async (req, res) => {
 
         // Получение сообщений чата
         const messages = await req.app.locals.databaseService.getChatMessages(id, limit);
-        res.json(messages);
+        
+        // Преобразование формата для frontend
+        const formattedMessages = messages.map(msg => ({
+            id: msg.id,
+            stream_id: msg.stream_id,
+            message: msg.message,
+            message_type: msg.message_type,
+            user: {
+                id: msg.user_id,
+                username: msg.user_username,
+                email: msg.user_email,
+                role: msg.user_role
+            },
+            timestamp: msg.created_at
+        }));
+        
+        res.json(formattedMessages);
 
     } catch (error) {
         console.error('❌ Ошибка получения сообщений чата:', error);

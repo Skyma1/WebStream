@@ -345,13 +345,14 @@ router.patch('/users/:id/toggle', requireAdmin, async (req, res) => {
         const query = 'UPDATE users SET is_active = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *';
         const result = await req.app.locals.databaseService.query(query, [newStatus, id]);
 
-        console.log(`✅ Статус пользователя изменен: ${user.email} -> ${newStatus ? 'активен' : 'неактивен'}`);
+        console.log(`✅ Статус пользователя изменен: ${user.username} -> ${newStatus ? 'активен' : 'неактивен'}`);
 
         res.json({
             success: true,
             message: `Пользователь ${newStatus ? 'активирован' : 'деактивирован'}`,
             user: {
                 id: result.rows[0].id,
+                username: result.rows[0].username,
                 email: result.rows[0].email,
                 role: result.rows[0].role,
                 is_active: result.rows[0].is_active,
@@ -412,9 +413,9 @@ router.get('/streams', requireAdmin, async (req, res) => {
             SELECT 
                 s.id, s.title, s.description, s.is_active, 
                 s.started_at, s.ended_at, s.viewer_count,
-                u.email as operator_email
+                u.username as operator_username
             FROM streams s
-            JOIN users u ON s.operator_id = u.id
+            LEFT JOIN users u ON s.operator_id = u.id
             ORDER BY s.started_at DESC
         `;
         const result = await req.app.locals.databaseService.query(query);
