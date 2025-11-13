@@ -116,6 +116,8 @@ export const useStreamStore = defineStore('stream', () => {
       const response = await apiService.get(`/streams/${streamId}/chat`, {
         params: { limit }
       })
+      // Сохраняем загруженные сообщения в store
+      setChatHistory(response.data)
       return response.data
     } catch (error) {
       console.error('❌ Ошибка получения сообщений чата:', error)
