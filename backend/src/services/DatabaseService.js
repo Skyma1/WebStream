@@ -134,7 +134,7 @@ class DatabaseService {
      */
     async getAllUsers() {
         const query = `
-            SELECT id, email, role, is_active, created_at, updated_at
+            SELECT id, username, email, role, is_active, created_at, updated_at
             FROM users
             ORDER BY created_at DESC
         `;
